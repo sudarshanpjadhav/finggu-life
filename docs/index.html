@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="description" content="finggu-life — Personal finance dashboard for India. Track expenses, EMIs, bills, savings goals and family budget. Works offline. No signup needed.">
+<meta name="theme-color" content="#0d1117">
+<title>finggu-life — आपका पैसा, आपका हिसाब</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── finggu-life CSS ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --finggu-bg:#0d1117;
+  --finggu-surface:#161b22;
+  --finggu-elevated:#1c2128;
+  --finggu-card:#21262d;
+  --finggu-border:#30363d;
+  --finggu-text:#e6edf3;
+  --finggu-muted:#7d8590;
+  --finggu-accent:#f78166;
+  --finggu-accent2:#79c0ff;
+  --finggu-green:#3fb950;
+  --finggu-red:#f85149;
+  --finggu-yellow:#d29922;
+  --finggu-purple:#bc8cff;
+  --finggu-orange:#ffa657;
+  --finggu-teal:#39d353;
+  --finggu-font:'Baloo 2',sans-serif;
+  --finggu-font-hindi:'Noto Sans Devanagari','Baloo 2',sans-serif;
+  --finggu-radius:12px;
+  --finggu-radius-sm:8px;
+  --finggu-radius-lg:16px;
+  --finggu-shadow:0 4px 24px rgba(0,0,0,.4);
+  --finggu-shadow-sm:0 2px 8px rgba(0,0,0,.3);
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{
+  font-family:var(--finggu-font);
+  background:var(--finggu-bg);
+  color:var(--finggu-text);
+  min-height:100vh;
+  overflow-x:hidden;
+  background-image:radial-gradient(ellipse at 20% 0%,rgba(247,129,102,.06) 0%,transparent 50%),
+                   radial-gradient(ellipse at 80% 100%,rgba(121,192,255,.05) 0%,transparent 50%);
+}
+
+/* ── Top Header ── */
+.finggu-header{
+  background:rgba(22,27,34,.9);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--finggu-border);
+  padding:14px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.finggu-logo{display:flex;align-items:center;gap:10px}
+.finggu-logo-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--finggu-accent),var(--finggu-orange));
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:800;color:#fff;
+  box-shadow:0 2px 12px rgba(247,129,102,.4);
+}
+.finggu-logo-text{font-size:17px;font-weight:700;letter-spacing:-.3px}
+.finggu-logo-text span{color:var(--finggu-accent)}
+.finggu-header-right{display:flex;align-items:center;gap:10px}
+.finggu-lang-btn{
+  background:var(--finggu-elevated);border:1px solid var(--finggu-border);
+  color:var(--finggu-muted);border-radius:8px;padding:5px 10px;
+  font-size:12px;font-family:var(--finggu-font);cursor:pointer;
+  transition:all .15s;
+}
+.finggu-lang-btn:hover,.finggu-lang-btn.active{background:var(--finggu-accent);color:#fff;border-color:var(--finggu-accent)}
+.finggu-month-selector{
+  background:var(--finggu-elevated);border:1px solid var(--finggu-border);
+  color:var(--finggu-text);border-radius:8px;padding:5px 10px;
+  font-size:13px;font-family:var(--finggu-font);cursor:pointer;outline:none;
+}
+
+/* ── Tabs ── */
+.finggu-tabs{
+  display:flex;overflow-x:auto;gap:4px;
+  padding:14px 16px 0;
+  scrollbar-width:none;
+  border-bottom:1px solid var(--finggu-border);
+  background:var(--finggu-surface);
+  position:sticky;top:65px;z-index:99;
+}
+.finggu-tabs::-webkit-scrollbar{display:none}
+.finggu-tab{
+  display:flex;align-items:center;gap:6px;
+  padding:9px 16px;border-radius:10px 10px 0 0;
+  font-size:13px;font-weight:600;cursor:pointer;
+  white-space:nowrap;color:var(--finggu-muted);
+  border:1px solid transparent;border-bottom:none;
+  transition:all .15s;flex-shrink:0;
+}
+.finggu-tab:hover{color:var(--finggu-text);background:var(--finggu-elevated)}
+.finggu-tab.active{
+  color:var(--finggu-text);
+  background:var(--finggu-bg);
+  border-color:var(--finggu-border);
+  border-bottom-color:var(--finggu-bg);
+  margin-bottom:-1px;
+}
+.finggu-tab-icon{font-size:15px}
+
+/* ── Content ── */
+.finggu-content{padding:20px 16px 100px;max-width:900px;margin:0 auto}
+.finggu-section{display:none}
+.finggu-section.active{display:block}
+
+/* ── Summary Cards ── */
+.finggu-summary-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;margin-bottom:20px;
+}
+@media(min-width:600px){.finggu-summary-grid{grid-template-columns:repeat(4,1fr)}}
+.finggu-summary-card{
+  background:var(--finggu-card);
+  border:1px solid var(--finggu-border);
+  border-radius:var(--finggu-radius);
+  padding:16px;
+  transition:transform .15s,box-shadow .15s;
+}
+.finggu-summary-card:hover{transform:translateY(-2px);box-shadow:var(--finggu-shadow)}
+.finggu-summary-label{font-size:11px;color:var(--finggu-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.finggu-summary-value{font-size:22px;font-weight:800;letter-spacing:-.5px}
+.finggu-summary-sub{font-size:11px;color:var(--finggu-muted);margin-top:4px}
+.finggu-summary-card.income .finggu-summary-value{color:var(--finggu-green)}
+.finggu-summary-card.expense .finggu-summary-value{color:var(--finggu-red)}
+.finggu-summary-card.savings .finggu-summary-value{color:var(--finggu-accent2)}
+.finggu-summary-card.balance .finggu-summary-value{color:var(--finggu-orange)}
+
+/* ── Section Header ── */
+.finggu-section-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;
+}
+.finggu-section-title{font-size:16px;font-weight:700}
+.finggu-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:var(--finggu-radius-sm);
+  font-size:13px;font-weight:600;font-family:var(--finggu-font);
+  cursor:pointer;border:none;transition:all .15s;
+}
+.finggu-btn-primary{background:var(--finggu-accent);color:#fff}
+.finggu-btn-primary:hover{background:#e8705a;transform:translateY(-1px)}
+.finggu-btn-ghost{background:var(--finggu-elevated);color:var(--finggu-text);border:1px solid var(--finggu-border)}
+.finggu-btn-ghost:hover{background:var(--finggu-card)}
+.finggu-btn-sm{padding:5px 10px;font-size:12px}
+.finggu-btn-danger{background:rgba(248,81,73,.15);color:var(--finggu-red);border:1px solid rgba(248,81,73,.3)}
+
+/* ── Cards / Lists ── */
+.finggu-card{
+  background:var(--finggu-card);border:1px solid var(--finggu-border);
+  border-radius:var(--finggu-radius);margin-bottom:10px;
+  transition:transform .15s;
+}
+.finggu-card:hover{transform:translateY(-1px)}
+.finggu-card-body{padding:14px 16px}
+.finggu-card-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 16px;border-bottom:1px solid var(--finggu-border);
+}
+.finggu-card-row:last-child{border-bottom:none}
+.finggu-card-row-left{display:flex;align-items:center;gap:12px}
+.finggu-category-dot{
+  width:38px;height:38px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;flex-shrink:0;
+}
+.finggu-card-label{font-size:14px;font-weight:600}
+.finggu-card-sublabel{font-size:12px;color:var(--finggu-muted);margin-top:2px}
+.finggu-card-amount{font-size:15px;font-weight:700}
+.finggu-card-amount.negative{color:var(--finggu-red)}
+.finggu-card-amount.positive{color:var(--finggu-green)}
+.finggu-card-actions{display:flex;gap:6px;align-items:center}
+
+/* ── Progress Bar ── */
+.finggu-progress-wrap{margin-top:8px}
+.finggu-progress-bar{
+  height:6px;background:var(--finggu-border);
+  border-radius:99px;overflow:hidden;
+}
+.finggu-progress-fill{
+  height:100%;border-radius:99px;
+  transition:width .5s cubic-bezier(.4,0,.2,1);
+  background:linear-gradient(90deg,var(--finggu-accent),var(--finggu-orange));
+}
+.finggu-progress-fill.green{background:linear-gradient(90deg,var(--finggu-green),var(--finggu-teal))}
+.finggu-progress-fill.red{background:linear-gradient(90deg,var(--finggu-red),#ff6b6b)}
+.finggu-progress-fill.blue{background:linear-gradient(90deg,var(--finggu-accent2),var(--finggu-purple))}
+.finggu-progress-text{display:flex;justify-content:space-between;font-size:11px;color:var(--finggu-muted);margin-top:4px}
+
+/* ── Modal ── */
+.finggu-modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);
+  backdrop-filter:blur(4px);z-index:200;
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.finggu-modal-overlay.open{opacity:1;pointer-events:all}
+.finggu-modal{
+  background:var(--finggu-surface);
+  border:1px solid var(--finggu-border);
+  border-radius:var(--finggu-radius-lg) var(--finggu-radius-lg) 0 0;
+  width:100%;max-width:560px;
+  padding:20px 20px 40px;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+  max-height:90vh;overflow-y:auto;
+}
+.finggu-modal-overlay.open .finggu-modal{transform:translateY(0)}
+.finggu-modal-handle{
+  width:36px;height:4px;background:var(--finggu-border);
+  border-radius:99px;margin:0 auto 16px;
+}
+.finggu-modal-title{font-size:18px;font-weight:700;margin-bottom:18px}
+.finggu-form-group{margin-bottom:14px}
+.finggu-form-label{font-size:12px;font-weight:600;color:var(--finggu-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;display:block}
+.finggu-input,.finggu-select,.finggu-textarea{
+  width:100%;background:var(--finggu-elevated);
+  border:1px solid var(--finggu-border);
+  color:var(--finggu-text);border-radius:var(--finggu-radius-sm);
+  padding:10px 12px;font-size:14px;font-family:var(--finggu-font);
+  outline:none;transition:border-color .15s;
+}
+.finggu-input:focus,.finggu-select:focus,.finggu-textarea:focus{border-color:var(--finggu-accent)}
+.finggu-input::placeholder{color:var(--finggu-muted)}
+.finggu-form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.finggu-category-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+}
+.finggu-cat-option{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:10px 6px;border-radius:var(--finggu-radius-sm);
+  border:2px solid var(--finggu-border);cursor:pointer;
+  font-size:11px;transition:all .15s;
+}
+.finggu-cat-option.selected{border-color:var(--finggu-accent);background:rgba(247,129,102,.1)}
+.finggu-cat-option-icon{font-size:20px}
+
+/* ── EMI Specific ── */
+.finggu-emi-card{
+  background:var(--finggu-card);border:1px solid var(--finggu-border);
+  border-radius:var(--finggu-radius);padding:16px;margin-bottom:10px;
+}
+.finggu-emi-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.finggu-emi-name{font-size:15px;font-weight:700}
+.finggu-emi-bank{font-size:12px;color:var(--finggu-muted);margin-top:2px}
+.finggu-emi-amount{font-size:18px;font-weight:800;color:var(--finggu-orange)}
+.finggu-emi-amount span{font-size:12px;font-weight:500;color:var(--finggu-muted)}
+.finggu-emi-stats{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:8px;background:var(--finggu-elevated);
+  border-radius:var(--finggu-radius-sm);padding:10px;margin-bottom:12px;
+}
+.finggu-emi-stat-label{font-size:10px;color:var(--finggu-muted);margin-bottom:2px}
+.finggu-emi-stat-value{font-size:13px;font-weight:700}
+
+/* ── Bill Reminder ── */
+.finggu-bill-card{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--finggu-card);border:1px solid var(--finggu-border);
+  border-radius:var(--finggu-radius);padding:14px 16px;margin-bottom:8px;
+}
+.finggu-bill-left{display:flex;align-items:center;gap:12px}
+.finggu-bill-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.finggu-bill-name{font-size:14px;font-weight:600}
+.finggu-bill-due{font-size:12px;margin-top:2px}
+.finggu-bill-due.overdue{color:var(--finggu-red)}
+.finggu-bill-due.soon{color:var(--finggu-yellow)}
+.finggu-bill-due.ok{color:var(--finggu-muted)}
+.finggu-bill-amount{font-size:16px;font-weight:800;text-align:right}
+.finggu-bill-status{font-size:11px;margin-top:2px;text-align:right}
+
+/* ── Savings Goal ── */
+.finggu-goal-card{
+  background:var(--finggu-card);border:1px solid var(--finggu-border);
+  border-radius:var(--finggu-radius);padding:16px;margin-bottom:10px;
+}
+.finggu-goal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.finggu-goal-name{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+.finggu-goal-emoji{font-size:22px}
+.finggu-goal-target{font-size:13px;color:var(--finggu-muted)}
+.finggu-goal-amounts{display:flex;justify-content:space-between;font-size:12px;color:var(--finggu-muted);margin-bottom:6px}
+.finggu-goal-saved{font-size:20px;font-weight:800;color:var(--finggu-green)}
+.finggu-add-money-btn{
+  margin-top:10px;width:100%;background:rgba(63,185,80,.12);
+  color:var(--finggu-green);border:1px solid rgba(63,185,80,.3);
+  border-radius:var(--finggu-radius-sm);padding:8px;
+  font-size:13px;font-weight:600;cursor:pointer;font-family:var(--finggu-font);
+  transition:all .15s;
+}
+.finggu-add-money-btn:hover{background:rgba(63,185,80,.2)}
+
+/* ── Family Budget ── */
+.finggu-member-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--finggu-elevated);border:1px solid var(--finggu-border);
+  border-radius:99px;padding:5px 12px;font-size:13px;
+  margin:4px;cursor:pointer;transition:all .15s;
+}
+.finggu-member-chip.active{background:var(--finggu-accent);border-color:var(--finggu-accent);color:#fff}
+.finggu-budget-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0;border-bottom:1px solid var(--finggu-border);
+}
+.finggu-budget-row:last-child{border-bottom:none}
+
+/* ── Chart ── */
+.finggu-chart-wrap{
+  background:var(--finggu-card);border:1px solid var(--finggu-border);
+  border-radius:var(--finggu-radius);padding:16px;margin-bottom:16px;
+}
+.finggu-chart-title{font-size:13px;font-weight:600;color:var(--finggu-muted);margin-bottom:12px}
+.finggu-donut{position:relative;width:140px;height:140px;margin:0 auto}
+.finggu-donut svg{transform:rotate(-90deg)}
+.finggu-donut-center{
+  position:absolute;inset:0;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;
+  font-weight:800;
+}
+.finggu-donut-center .finggu-dc-val{font-size:18px;color:var(--finggu-text)}
+.finggu-donut-center .finggu-dc-lbl{font-size:10px;color:var(--finggu-muted)}
+.finggu-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center}
+.finggu-legend-item{display:flex;align-items:center;gap:5px;font-size:11px}
+.finggu-legend-dot{width:8px;height:8px;border-radius:99px;flex-shrink:0}
+
+/* ── Category bar chart ── */
+.finggu-bar-item{margin-bottom:10px}
+.finggu-bar-header{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.finggu-bar-track{height:8px;background:var(--finggu-border);border-radius:99px;overflow:hidden}
+.finggu-bar-fill{height:100%;border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+
+/* ── Empty state ── */
+.finggu-empty{
+  display:flex;flex-direction:column;align-items:center;
+  padding:40px 20px;text-align:center;
+}
+.finggu-empty-icon{font-size:48px;margin-bottom:12px;opacity:.5}
+.finggu-empty-title{font-size:16px;font-weight:600;margin-bottom:6px}
+.finggu-empty-sub{font-size:13px;color:var(--finggu-muted)}
+
+/* ── Floating Add Button ── */
+.finggu-fab{
+  position:fixed;bottom:24px;right:20px;
+  width:52px;height:52px;border-radius:16px;
+  background:linear-gradient(135deg,var(--finggu-accent),var(--finggu-orange));
+  box-shadow:0 4px 20px rgba(247,129,102,.5);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;cursor:pointer;z-index:99;
+  transition:transform .15s,box-shadow .15s;border:none;color:#fff;
+}
+.finggu-fab:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(247,129,102,.6)}
+.finggu-fab:active{transform:scale(.96)}
+
+/* ── Toast ── */
+.finggu-toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--finggu-card);border:1px solid var(--finggu-border);
+  border-radius:var(--finggu-radius);padding:10px 18px;
+  font-size:13px;font-weight:600;z-index:500;
+  opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;
+  box-shadow:var(--finggu-shadow);
+}
+.finggu-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.finggu-toast.success{border-color:var(--finggu-green);color:var(--finggu-green)}
+.finggu-toast.error{border-color:var(--finggu-red);color:var(--finggu-red)}
+
+/* ── Badge ── */
+.finggu-badge{
+  display:inline-block;font-size:10px;font-weight:700;
+  padding:2px 7px;border-radius:99px;
+}
+.finggu-badge-red{background:rgba(248,81,73,.15);color:var(--finggu-red)}
+.finggu-badge-green{background:rgba(63,185,80,.15);color:var(--finggu-green)}
+.finggu-badge-yellow{background:rgba(210,153,34,.15);color:var(--finggu-yellow)}
+.finggu-badge-blue{background:rgba(121,192,255,.15);color:var(--finggu-accent2)}
+
+/* ── Rupee helper ── */
+.finggu-rupee::before{content:'₹'}
+
+/* ── Responsive ── */
+@media(min-width:600px){
+  .finggu-content{padding:24px 24px 80px}
+  .finggu-tabs{padding:14px 24px 0}
+  .finggu-header{padding:14px 24px}
+}
+
+/* ── Animations ── */
+@keyframes fingguFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.finggu-section.active{animation:fingguFadeIn .2s ease}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="finggu-header">
+  <div class="finggu-logo">
+    <div class="finggu-logo-icon">₹</div>
+    <div>
+      <div class="finggu-logo-text">finggu<span>-life</span></div>
+    </div>
+  </div>
+  <div class="finggu-header-right">
+    <button class="finggu-lang-btn active" onclick="fingguFn_setLang('en')" id="finggu-btn-en">EN</button>
+    <button class="finggu-lang-btn" onclick="fingguFn_setLang('hi')" id="finggu-btn-hi">हि</button>
+    <button class="finggu-lang-btn" onclick="fingguFn_setLang('mr')" id="finggu-btn-mr">म</button>
+    <select class="finggu-month-selector" id="finggu-month-sel" onchange="fingguFn_onMonthChange()"></select>
+  </div>
+</header>
+
+<!-- Tabs -->
+<div class="finggu-tabs" id="finggu-tabs">
+  <div class="finggu-tab active" onclick="fingguFn_switchTab('expenses')" data-tab="expenses">
+    <span class="finggu-tab-icon">💸</span><span class="finggu-tab-label" data-i18n="tab_expenses">Expenses</span>
+  </div>
+  <div class="finggu-tab" onclick="fingguFn_switchTab('emi')" data-tab="emi">
+    <span class="finggu-tab-icon">🏦</span><span class="finggu-tab-label" data-i18n="tab_emi">EMI</span>
+  </div>
+  <div class="finggu-tab" onclick="fingguFn_switchTab('bills')" data-tab="bills">
+    <span class="finggu-tab-icon">📋</span><span class="finggu-tab-label" data-i18n="tab_bills">Bills</span>
+  </div>
+  <div class="finggu-tab" onclick="fingguFn_switchTab('savings')" data-tab="savings">
+    <span class="finggu-tab-icon">🎯</span><span class="finggu-tab-label" data-i18n="tab_savings">Goals</span>
+  </div>
+  <div class="finggu-tab" onclick="fingguFn_switchTab('family')" data-tab="family">
+    <span class="finggu-tab-icon">👨‍👩‍👧</span><span class="finggu-tab-label" data-i18n="tab_family">Family</span>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="finggu-content">
+
+  <!-- ═══ EXPENSES TAB ═══ -->
+  <div class="finggu-section active" id="finggu-sec-expenses">
+    <div class="finggu-summary-grid" id="finggu-expense-summary"></div>
+    <div class="finggu-chart-wrap">
+      <div class="finggu-chart-title" data-i18n="spending_by_cat">Spending by Category</div>
+      <div id="finggu-cat-chart"></div>
+    </div>
+    <div class="finggu-section-header">
+      <div class="finggu-section-title" data-i18n="transactions">Transactions</div>
+      <select class="finggu-month-selector" style="width:auto" id="finggu-cat-filter" onchange="fingguFn_renderExpenses()">
+        <option value="">All Categories</option>
+      </select>
+    </div>
+    <div id="finggu-expense-list"></div>
+  </div>
+
+  <!-- ═══ EMI TAB ═══ -->
+  <div class="finggu-section" id="finggu-sec-emi">
+    <div class="finggu-summary-grid" id="finggu-emi-summary"></div>
+    <div class="finggu-section-header">
+      <div class="finggu-section-title" data-i18n="your_emis">Your EMIs</div>
+    </div>
+    <div id="finggu-emi-list"></div>
+  </div>
+
+  <!-- ═══ BILLS TAB ═══ -->
+  <div class="finggu-section" id="finggu-sec-bills">
+    <div class="finggu-section-header">
+      <div class="finggu-section-title" data-i18n="bill_reminders">Bill Reminders</div>
+    </div>
+    <div id="finggu-bills-list"></div>
+  </div>
+
+  <!-- ═══ SAVINGS TAB ═══ -->
+  <div class="finggu-section" id="finggu-sec-savings">
+    <div class="finggu-summary-grid" id="finggu-savings-summary"></div>
+    <div class="finggu-section-header">
+      <div class="finggu-section-title" data-i18n="your_goals">Your Goals</div>
+    </div>
+    <div id="finggu-goals-list"></div>
+  </div>
+
+  <!-- ═══ FAMILY TAB ═══ -->
+  <div class="finggu-section" id="finggu-sec-family">
+    <div class="finggu-section-header">
+      <div class="finggu-section-title" data-i18n="family_budget">Family Budget</div>
+      <button class="finggu-btn finggu-btn-ghost finggu-btn-sm" onclick="fingguFn_openAddMember()" data-i18n="add_member">+ Member</button>
+    </div>
+    <div id="finggu-members-row" style="margin-bottom:16px"></div>
+    <div id="finggu-family-content"></div>
+  </div>
+
+</div>
+
+<!-- FAB -->
+<button class="finggu-fab" id="finggu-fab" onclick="fingguFn_openAddModal()">＋</button>
+
+<!-- Toast -->
+<div class="finggu-toast" id="finggu-toast"></div>
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- Add Expense Modal -->
+<div class="finggu-modal-overlay" id="finggu-modal-expense">
+  <div class="finggu-modal">
+    <div class="finggu-modal-handle"></div>
+    <div class="finggu-modal-title" data-i18n="add_expense">Add Expense / Income</div>
+    <div class="finggu-form-group">
+      <label class="finggu-form-label" data-i18n="type">Type</label>
+      <div style="display:flex;gap:8px">
+        <button class="finggu-btn finggu-btn-danger" id="finggu-type-expense" onclick="fingguFn_setType('expense')" style="flex:1">💸 Expense</button>
+        <button class="finggu-btn finggu-btn-ghost" id="finggu-type-income" onclick="fingguFn_setType('income')" style="flex:1">💰 Income</button>
+      </div>
+    </div>
+    <div class="finggu-form-group">
+      <label class="finggu-form-label" data-i18n="amount">Amount (₹)</label>
+      <input class="finggu-input" type="number" id="finggu-exp-amount" placeholder="0" min="0">
+    </div>
+    <div class="finggu-form-group">
+      <label class="finggu-form-label" data-i18n="description">Description</label>
+      <input class="finggu-input" type="text" id="finggu-exp-desc" placeholder="e.g. Grocery, Salary, Petrol...">
+    </div>
+    <div class="finggu-form-group">
+      <label class="finggu-form-label" data-i18n="category">Category</label>
+      <div class="finggu-category-grid" id="finggu-cat-picker"></div>
+    </div>
+    <div class="finggu-form-row">
+      <div class="finggu-form-group">
+        <label class="finggu-form-label" data-i18n="date">Date</label>
+        <input class="finggu-input" type="date" id="finggu-exp-date">
+      </div>
+      <div class="finggu-form-group">
+        <label class="finggu-form-label" data-i18n="member">Member</label>
+        <select class="finggu-select" id="finggu-exp-member"></select>
+      </div>
+    </div>
+    <button class="finggu-btn finggu-btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="fingguFn_saveExpense()" data-i18n="save">Save</button>
+  </div>
+</div>
+
+<!-- Add EMI Modal -->
+<div class="finggu-modal-overlay" id="finggu-modal-emi">
+  <div class="finggu-modal">
+    <div class="finggu-modal-handle"></div>
+    <div class="finggu-modal-title" data-i18n="add_emi">Add EMI / Loan</div>
+    <div class="finggu-form-group">
+      <label class="finggu-form-label" data-i18n="loan_name">Loan Name</label>
+      <input class="finggu-input" type="text" id="finggu-emi-name" placeholder="e.g. Home Loan, Car Loan...">
+    </div>
+    <div class="finggu-form-row">
+      <div class="finggu-form-group">
+        <label class="finggu-form-label">Bank / Lender</label>
+        <input class="finggu-input" type="text" id="finggu-emi-bank" placeholder="SBI, HDFC...">
+      </div>
+      <div class="finggu-form-group">
+        <label class="finggu-form-label" data-i18n="emi_amount">EMI Amount (₹)</label>
+        <input class="finggu-input" type="number" id="finggu-emi-amount" placeholder="0">
+      </div>
+    </div>
+    <div class="finggu-form-row">
+      <div class="finggu-form-group">
+        <label class="finggu-form-label">Total Amount (₹)</label>
+        <input class="finggu-input" type="number" id="finggu-emi-total" placeholder="0">
+      </div>
+      <div class="finggu-form-group">
+        <label class="finggu-form-label">Paid So Far (₹)</label>
+        <input class="finggu-input" type="number" id="finggu-emi-paid" placeholder="0">
+      </div>
+    </div>
+    <div class="finggu-form-row">
+      <div class="finggu-form-group">
+        <label class="finggu-form-label">Start Date</label>
+        <input class="finggu-input" type="date" id="finggu-emi-start">
+      </div>
+      <div class="finggu-form-group">
+        <label class="finggu-form-label">Due Date (monthly)</label>
+        <input class="finggu-input" type="number" id="finggu-emi-due" placeholder="5" min="1" max="31">
+      </div>
+    </div>
+    <div class="finggu-form-row">
+      <div class="finggu-form-group">
+        <label class="finggu-form-label">Tenure (months)</label>
+        <input class="finggu-input" type="number" id="finggu-emi-tenure" placeholder="60">
+      </div>
+      <div class="finggu-form-group">
+        <label class="finggu-form-label">Interest Rate (%)</label>
+        <input class="finggu-input" type="number" id="finggu-emi-rate" placeholder="8.5" step="0.1">
+      </div>
+    </div>
+    <button class="finggu-btn finggu-btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="fingguFn_saveEMI()">Save EMI</button>
+  </div>
+</div>
+
+<!-- Add Bill Modal -->
+<div class="finggu-modal-overlay" id="finggu-modal-bill">
+  <div class="finggu-modal">
+    <div class="finggu-modal-handle"></div>
+    <div class="finggu-modal-title" data-i18n="add_bill">Add Bill Reminder</div>
+    <div class="finggu-form-group">
+      <label class="finggu-form-label">Bill Name</label>
+      <input class="finggu-input" type="text" id="finggu-bill-name" placeholder="Electricity, Internet, Rent...">
+    </div>
+    <div class="finggu-form-row">
+      <div class="finggu-form-group">
+        <label class="finggu-form-label">Amount (₹)</label>
+        <input class="finggu-input" type="number" id="finggu-bill-amount" placeholder="0">
+      </div>
+      <div class="finggu-form-group">
+        <label class="finggu-form-label">Due Date (day of month)</label>
+        <input class="finggu-input" type="number" id="finggu-bill-due" placeholder="10" min="1" max="31">
+      </div>
+    </div>
+    <div class="finggu-form-row">
+      <div class="finggu-form-group">
+        <label class="finggu-form-label">Category</label>
+        <select class="finggu-select" id="finggu-bill-cat">
+          <option value="💡">💡 Electricity</option>
+          <option value="🌐">🌐 Internet</option>
+          <option value="📱">📱 Mobile</option>
+          <option value="🏠">🏠 Rent</option>
+          <option value="💧">💧 Water</option>
+          <option value="🔥">🔥 Gas</option>
+          <option value="📺">📺 OTT / Cable</option>
+          <option value="🏋️">🏋️ Gym</option>
+          <option value="📚">📚 School</option>
+          <option value="🔔">🔔 Other</option>
+        </select>
+      </div>
+      <div class="finggu-form-group">
+        <label class="finggu-form-label">Recurrence</label>
+        <select class="finggu-select" id="finggu-bill-recur">
+          <option value="monthly">Monthly</option>
+          <option value="quarterly">Quarterly</option>
+          <option value="yearly">Yearly</option>
+        </select>
+      </div>
+    </div>
+    <button class="finggu-btn finggu-btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="fingguFn_saveBill()">Save Reminder</button>
+  </div>
+</div>
+
+<!-- Add Goal Modal -->
+<div class="finggu-modal-overlay" id="finggu-modal-goal">
+  <div class="finggu-modal">
+    <div class="finggu-modal-handle"></div>
+    <div class="finggu-modal-title">Add Savings Goal 🎯</div>
+    <div class="finggu-form-group">
+      <label class="finggu-form-label">Goal Name</label>
+      <input class="finggu-input" type="text" id="finggu-goal-name" placeholder="New Phone, Vacation, Emergency Fund...">
+    </div>
+    <div class="finggu-form-row">
+      <div class="finggu-form-group">
+        <label class="finggu-form-label">Target Amount (₹)</label>
+        <input class="finggu-input" type="number" id="finggu-goal-target" placeholder="50000">
+      </div>
+      <div class="finggu-form-group">
+        <label class="finggu-form-label">Already Saved (₹)</label>
+        <input class="finggu-input" type="number" id="finggu-goal-saved" placeholder="0">
+      </div>
+    </div>
+    <div class="finggu-form-row">
+      <div class="finggu-form-group">
+        <label class="finggu-form-label">Target Date</label>
+        <input class="finggu-input" type="date" id="finggu-goal-date">
+      </div>
+      <div class="finggu-form-group">
+        <label class="finggu-form-label">Icon</label>
+        <select class="finggu-select" id="finggu-goal-emoji">
+          <option value="🏠">🏠 Home</option>
+          <option value="🚗">🚗 Car</option>
+          <option value="✈️">✈️ Vacation</option>
+          <option value="📱">📱 Phone</option>
+          <option value="💍">💍 Wedding</option>
+          <option value="🎓">🎓 Education</option>
+          <option value="🏥">🏥 Emergency</option>
+          <option value="👶">👶 Baby</option>
+          <option value="💻">💻 Laptop</option>
+          <option value="🎯">🎯 Other</option>
+        </select>
+      </div>
+    </div>
+    <button class="finggu-btn finggu-btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="fingguFn_saveGoal()">Save Goal</button>
+  </div>
+</div>
+
+<!-- Add Money to Goal Modal -->
+<div class="finggu-modal-overlay" id="finggu-modal-addmoney">
+  <div class="finggu-modal">
+    <div class="finggu-modal-handle"></div>
+    <div class="finggu-modal-title" id="finggu-addmoney-title">Add Money to Goal</div>
+    <div class="finggu-form-group">
+      <label class="finggu-form-label">Amount (₹)</label>
+      <input class="finggu-input" type="number" id="finggu-addmoney-amount" placeholder="0">
+    </div>
+    <input type="hidden" id="finggu-addmoney-id">
+    <button class="finggu-btn finggu-btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="fingguFn_doAddMoney()">Add Money 💰</button>
+  </div>
+</div>
+
+<!-- Add Member Modal -->
+<div class="finggu-modal-overlay" id="finggu-modal-member">
+  <div class="finggu-modal">
+    <div class="finggu-modal-handle"></div>
+    <div class="finggu-modal-title">Add Family Member</div>
+    <div class="finggu-form-group">
+      <label class="finggu-form-label">Name</label>
+      <input class="finggu-input" type="text" id="finggu-member-name" placeholder="e.g. Raj, Priya, Aai...">
+    </div>
+    <div class="finggu-form-group">
+      <label class="finggu-form-label">Monthly Budget (₹)</label>
+      <input class="finggu-input" type="number" id="finggu-member-budget" placeholder="10000">
+    </div>
+    <div class="finggu-form-group">
+      <label class="finggu-form-label">Icon</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px" id="finggu-member-icons">
+        <span onclick="fingguFn_selectMemberIcon(this)" style="font-size:24px;cursor:pointer;padding:6px;border-radius:8px;border:2px solid transparent" class="finggu-member-icon-opt">👨</span>
+        <span onclick="fingguFn_selectMemberIcon(this)" style="font-size:24px;cursor:pointer;padding:6px;border-radius:8px;border:2px solid transparent" class="finggu-member-icon-opt">👩</span>
+        <span onclick="fingguFn_selectMemberIcon(this)" style="font-size:24px;cursor:pointer;padding:6px;border-radius:8px;border:2px solid transparent" class="finggu-member-icon-opt">👦</span>
+        <span onclick="fingguFn_selectMemberIcon(this)" style="font-size:24px;cursor:pointer;padding:6px;border-radius:8px;border:2px solid transparent" class="finggu-member-icon-opt">👧</span>
+        <span onclick="fingguFn_selectMemberIcon(this)" style="font-size:24px;cursor:pointer;padding:6px;border-radius:8px;border:2px solid transparent" class="finggu-member-icon-opt">👴</span>
+        <span onclick="fingguFn_selectMemberIcon(this)" style="font-size:24px;cursor:pointer;padding:6px;border-radius:8px;border:2px solid transparent" class="finggu-member-icon-opt">👵</span>
+      </div>
+    </div>
+    <input type="hidden" id="finggu-member-icon-val" value="👤">
+    <button class="finggu-btn finggu-btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="fingguFn_saveMember()">Add Member</button>
+  </div>
+</div>
+
+<script>
+// ╔══════════════════════════════════════════════════════════╗
+// ║  finggu-life — India-first Personal Finance Dashboard   ║
+// ║  By Finggu (finggu.com)                                 ║
+// ║  github.com/sudarshanpjadhav/finggu-life                ║
+// ╚══════════════════════════════════════════════════════════╝
+
+'use strict';
+
+// ── i18n ──────────────────────────────────────────────────────────────────────
+const FINGGU_I18N = {
+  en: {
+    tab_expenses:'Expenses', tab_emi:'EMI', tab_bills:'Bills',
+    tab_savings:'Goals', tab_family:'Family',
+    spending_by_cat:'Spending by Category', transactions:'Transactions',
+    your_emis:'Your EMIs', bill_reminders:'Bill Reminders',
+    your_goals:'Your Goals', family_budget:'Family Budget',
+    add_expense:'Add Expense / Income', add_emi:'Add EMI / Loan',
+    add_bill:'Add Bill Reminder', type:'Type', amount:'Amount (₹)',
+    description:'Description', category:'Category', date:'Date',
+    member:'Member', save:'Save', add_member:'+ Member',
+    total_income:'Total Income', total_expense:'Total Expense',
+    net_savings:'Net Savings', balance:'Balance',
+    emi_amount:'EMI Amount (₹)', no_expenses:'No transactions yet',
+    no_emis:'No EMIs added', no_bills:'No bills added',
+    no_goals:'No goals yet', overdue:'Overdue', due_soon:'Due soon',
+    paid:'Paid', unpaid:'Unpaid',
+  },
+  hi: {
+    tab_expenses:'खर्च', tab_emi:'ईएमआई', tab_bills:'बिल',
+    tab_savings:'लक्ष्य', tab_family:'परिवार',
+    spending_by_cat:'श्रेणी अनुसार खर्च', transactions:'लेनदेन',
+    your_emis:'आपके ईएमआई', bill_reminders:'बिल अनुस्मारक',
+    your_goals:'आपके लक्ष्य', family_budget:'परिवार बजट',
+    add_expense:'खर्च / आय जोड़ें', add_emi:'ईएमआई जोड़ें',
+    add_bill:'बिल अनुस्मारक जोड़ें', type:'प्रकार', amount:'राशि (₹)',
+    description:'विवरण', category:'श्रेणी', date:'तारीख',
+    member:'सदस्य', save:'सहेजें', add_member:'+ सदस्य',
+    total_income:'कुल आय', total_expense:'कुल खर्च',
+    net_savings:'शुद्ध बचत', balance:'शेष',
+    emi_amount:'ईएमआई राशि (₹)', no_expenses:'अभी कोई लेनदेन नहीं',
+    no_emis:'कोई ईएमआई नहीं', no_bills:'कोई बिल नहीं',
+    no_goals:'अभी कोई लक्ष्य नहीं', overdue:'अतिदेय', due_soon:'जल्द देय',
+    paid:'भुगतान किया', unpaid:'बकाया',
+  },
+  mr: {
+    tab_expenses:'खर्च', tab_emi:'हप्ता', tab_bills:'बिले',
+    tab_savings:'उद्दिष्टे', tab_family:'कुटुंब',
+    spending_by_cat:'वर्गानुसार खर्च', transactions:'व्यवहार',
+    your_emis:'तुमचे हप्ते', bill_reminders:'बिल स्मरण',
+    your_goals:'तुमची उद्दिष्टे', family_budget:'कुटुंब बजेट',
+    add_expense:'खर्च / उत्पन्न जोडा', add_emi:'हप्ता जोडा',
+    add_bill:'बिल स्मरण जोडा', type:'प्रकार', amount:'रक्कम (₹)',
+    description:'वर्णन', category:'वर्ग', date:'तारीख',
+    member:'सदस्य', save:'जतन करा', add_member:'+ सदस्य',
+    total_income:'एकूण उत्पन्न', total_expense:'एकूण खर्च',
+    net_savings:'निव्वळ बचत', balance:'शिल्लक',
+    emi_amount:'हप्त्याची रक्कम (₹)', no_expenses:'अद्याप कोणताही व्यवहार नाही',
+    no_emis:'कोणताही हप्ता नाही', no_bills:'कोणतेही बिल नाही',
+    no_goals:'अद्याप कोणतेही उद्दिष्ट नाही', overdue:'थकबाकी', due_soon:'लवकरच देय',
+    paid:'भरले', unpaid:'थकीत',
+  }
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let FINGGU_state = {
+  lang:       'en',
+  activeTab:  'expenses',
+  activeMonth: new Date().toISOString().slice(0,7),
+  expenses:   [],
+  emis:       [],
+  bills:      [],
+  goals:      [],
+  members:    [{ id:'default', name:'Me', icon:'👤', budget:30000 }],
+  activeMember: 'all',
+  expenseType: 'expense',
+  selectedCat: 'food',
+  selectedMemberIcon: '👤',
+  editingExpenseId: null,
+};
+
+// ── Categories ────────────────────────────────────────────────────────────────
+const FINGGU_CATEGORIES = [
+  { id:'food',       label:'Food',      icon:'🍛', color:'#f78166' },
+  { id:'transport',  label:'Travel',    icon:'🚗', color:'#79c0ff' },
+  { id:'shopping',   label:'Shopping',  icon:'🛍️', color:'#bc8cff' },
+  { id:'health',     label:'Health',    icon:'🏥', color:'#3fb950' },
+  { id:'utility',    label:'Utility',   icon:'💡', color:'#ffa657' },
+  { id:'emi',        label:'EMI',       icon:'🏦', color:'#d29922' },
+  { id:'education',  label:'Study',     icon:'📚', color:'#39d353' },
+  { id:'entertain',  label:'Fun',       icon:'🎬', color:'#f85149' },
+  { id:'salary',     label:'Salary',    icon:'💰', color:'#3fb950' },
+  { id:'invest',     label:'Invest',    icon:'📈', color:'#79c0ff' },
+  { id:'other',      label:'Other',     icon:'🔖', color:'#7d8590' },
+];
+
+const FINGGU_CAT_MAP = Object.fromEntries(FINGGU_CATEGORIES.map(c => [c.id, c]));
+
+// ── Storage ───────────────────────────────────────────────────────────────────
+const fingguFn_save = () => {
+  try { localStorage.setItem('finggu_life_v1', JSON.stringify(FINGGU_state)); } catch(e){}
+};
+const fingguFn_load = () => {
+  try {
+    const FINGGU_saved = localStorage.getItem('finggu_life_v1');
+    if (FINGGU_saved) {
+      const FINGGU_parsed = JSON.parse(FINGGU_saved);
+      FINGGU_state = { ...FINGGU_state, ...FINGGU_parsed };
+    }
+  } catch(e){}
+};
+
+// ── i18n helper ───────────────────────────────────────────────────────────────
+const fingguFn_t = (key) => FINGGU_I18N[FINGGU_state.lang]?.[key] || FINGGU_I18N.en[key] || key;
+
+const fingguFn_applyI18n = () => {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = fingguFn_t(el.dataset.i18n);
+  });
+};
+
+const fingguFn_setLang = (lang) => {
+  FINGGU_state.lang = lang;
+  ['en','hi','mr'].forEach(l => {
+    document.getElementById('finggu-btn-'+l)?.classList.toggle('active', l === lang);
+  });
+  fingguFn_applyI18n();
+  fingguFn_renderAll();
+  fingguFn_save();
+};
+
+// ── Rupee formatter ───────────────────────────────────────────────────────────
+const fingguFn_rupee = (n) => {
+  if (n >= 10000000) return '₹' + (n/10000000).toFixed(2) + 'Cr';
+  if (n >= 100000)   return '₹' + (n/100000).toFixed(2) + 'L';
+  if (n >= 1000)     return '₹' + (n/1000).toFixed(1) + 'K';
+  return '₹' + Math.round(n).toLocaleString('en-IN');
+};
+const fingguFn_rupeeExact = (n) => '₹' + Number(n||0).toLocaleString('en-IN');
+
+// ── Date helpers ──────────────────────────────────────────────────────────────
+const fingguFn_today = () => new Date().toISOString().slice(0,10);
+const fingguFn_daysUntil = (day) => {
+  const FINGGU_now   = new Date();
+  const FINGGU_month = FINGGU_now.getMonth();
+  const FINGGU_year  = FINGGU_now.getFullYear();
+  let FINGGU_due = new Date(FINGGU_year, FINGGU_month, day);
+  if (FINGGU_due < FINGGU_now) FINGGU_due = new Date(FINGGU_year, FINGGU_month+1, day);
+  return Math.ceil((FINGGU_due - FINGGU_now) / 86400000);
+};
+
+// ── Month selector ────────────────────────────────────────────────────────────
+const fingguFn_initMonthSelector = () => {
+  const FINGGU_sel = document.getElementById('finggu-month-sel');
+  FINGGU_sel.innerHTML = '';
+  const FINGGU_now = new Date();
+  for (let i = 0; i < 12; i++) {
+    const FINGGU_d = new Date(FINGGU_now.getFullYear(), FINGGU_now.getMonth() - i, 1);
+    const FINGGU_val = FINGGU_d.toISOString().slice(0,7);
+    const FINGGU_lbl = FINGGU_d.toLocaleString('default', {month:'long', year:'numeric'});
+    const FINGGU_opt = document.createElement('option');
+    FINGGU_opt.value = FINGGU_val;
+    FINGGU_opt.textContent = FINGGU_lbl;
+    if (FINGGU_val === FINGGU_state.activeMonth) FINGGU_opt.selected = true;
+    FINGGU_sel.appendChild(FINGGU_opt);
+  }
+};
+
+const fingguFn_onMonthChange = () => {
+  FINGGU_state.activeMonth = document.getElementById('finggu-month-sel').value;
+  fingguFn_renderAll();
+};
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+const fingguFn_switchTab = (tab) => {
+  FINGGU_state.activeTab = tab;
+  document.querySelectorAll('.finggu-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+  document.querySelectorAll('.finggu-section').forEach(s => {
+    s.classList.toggle('active', s.id === 'finggu-sec-'+tab);
+  });
+  fingguFn_renderAll();
+};
+
+// ── Modal helpers ─────────────────────────────────────────────────────────────
+const fingguFn_openModal = (id) => {
+  document.getElementById('finggu-modal-'+id)?.classList.add('open');
+};
+const fingguFn_closeAllModals = () => {
+  document.querySelectorAll('.finggu-modal-overlay').forEach(m => m.classList.remove('open'));
+};
+document.querySelectorAll('.finggu-modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) fingguFn_closeAllModals(); });
+});
+
+const fingguFn_openAddModal = () => {
+  const FINGGU_map = {
+    expenses:'expense', emi:'emi', bills:'bill', savings:'goal', family:'expense'
+  };
+  fingguFn_openModal(FINGGU_map[FINGGU_state.activeTab] || 'expense');
+};
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+const fingguFn_toast = (msg, type='success') => {
+  const FINGGU_el = document.getElementById('finggu-toast');
+  FINGGU_el.textContent = msg;
+  FINGGU_el.className = 'finggu-toast show ' + type;
+  setTimeout(() => FINGGU_el.className = 'finggu-toast', 2500);
+};
+
+// ── Expense category picker ───────────────────────────────────────────────────
+const fingguFn_renderCatPicker = () => {
+  const FINGGU_el = document.getElementById('finggu-cat-picker');
+  FINGGU_el.innerHTML = FINGGU_CATEGORIES.map(c => `
+    <div class="finggu-cat-option ${c.id === FINGGU_state.selectedCat ? 'selected' : ''}"
+         onclick="fingguFn_selectCat('${c.id}')">
+      <span class="finggu-cat-option-icon">${c.icon}</span>
+      <span>${c.label}</span>
+    </div>
+  `).join('');
+};
+
+const fingguFn_selectCat = (id) => {
+  FINGGU_state.selectedCat = id;
+  fingguFn_renderCatPicker();
+};
+
+const fingguFn_setType = (type) => {
+  FINGGU_state.expenseType = type;
+  const FINGGU_expBtn = document.getElementById('finggu-type-expense');
+  const FINGGU_incBtn = document.getElementById('finggu-type-income');
+  if (type === 'expense') {
+    FINGGU_expBtn.className = 'finggu-btn finggu-btn-danger';
+    FINGGU_incBtn.className = 'finggu-btn finggu-btn-ghost';
+  } else {
+    FINGGU_expBtn.className = 'finggu-btn finggu-btn-ghost';
+    FINGGU_incBtn.className = 'finggu-btn finggu-btn-primary';
+  }
+};
+
+// ── Member select in expense form ─────────────────────────────────────────────
+const fingguFn_populateMemberSelect = () => {
+  const FINGGU_sel = document.getElementById('finggu-exp-member');
+  FINGGU_sel.innerHTML = FINGGU_state.members.map(m =>
+    `<option value="${m.id}">${m.icon} ${m.name}</option>`
+  ).join('');
+};
+
+// ── SAVE EXPENSE ──────────────────────────────────────────────────────────────
+const fingguFn_saveExpense = () => {
+  const FINGGU_amount = parseFloat(document.getElementById('finggu-exp-amount').value);
+  const FINGGU_desc   = document.getElementById('finggu-exp-desc').value.trim();
+  const FINGGU_date   = document.getElementById('finggu-exp-date').value || fingguFn_today();
+  const FINGGU_member = document.getElementById('finggu-exp-member').value;
+
+  if (!FINGGU_amount || FINGGU_amount <= 0) { fingguFn_toast('Enter a valid amount','error'); return; }
+  if (!FINGGU_desc)                          { fingguFn_toast('Add a description','error'); return; }
+
+  const FINGGU_exp = {
+    id:       Date.now().toString(),
+    type:     FINGGU_state.expenseType,
+    amount:   FINGGU_amount,
+    desc:     FINGGU_desc,
+    category: FINGGU_state.selectedCat,
+    date:     FINGGU_date,
+    member:   FINGGU_member,
+    month:    FINGGU_date.slice(0,7),
+  };
+
+  FINGGU_state.expenses.unshift(FINGGU_exp);
+  fingguFn_save();
+  fingguFn_closeAllModals();
+  fingguFn_clearExpenseForm();
+  fingguFn_renderAll();
+  fingguFn_toast('✓ Saved!');
+};
+
+const fingguFn_clearExpenseForm = () => {
+  document.getElementById('finggu-exp-amount').value = '';
+  document.getElementById('finggu-exp-desc').value   = '';
+  document.getElementById('finggu-exp-date').value   = fingguFn_today();
+  FINGGU_state.selectedCat  = 'food';
+  FINGGU_state.expenseType  = 'expense';
+  fingguFn_renderCatPicker();
+  fingguFn_setType('expense');
+};
+
+const fingguFn_deleteExpense = (id) => {
+  FINGGU_state.expenses = FINGGU_state.expenses.filter(e => e.id !== id);
+  fingguFn_save();
+  fingguFn_renderAll();
+  fingguFn_toast('Deleted');
+};
+
+// ── SAVE EMI ──────────────────────────────────────────────────────────────────
+const fingguFn_saveEMI = () => {
+  const FINGGU_name   = document.getElementById('finggu-emi-name').value.trim();
+  const FINGGU_amount = parseFloat(document.getElementById('finggu-emi-amount').value);
+  const FINGGU_total  = parseFloat(document.getElementById('finggu-emi-total').value) || 0;
+  const FINGGU_paid   = parseFloat(document.getElementById('finggu-emi-paid').value) || 0;
+  const FINGGU_due    = parseInt(document.getElementById('finggu-emi-due').value) || 5;
+  const FINGGU_tenure = parseInt(document.getElementById('finggu-emi-tenure').value) || 12;
+  const FINGGU_rate   = parseFloat(document.getElementById('finggu-emi-rate').value) || 0;
+  const FINGGU_bank   = document.getElementById('finggu-emi-bank').value.trim();
+
+  if (!FINGGU_name || !FINGGU_amount) { fingguFn_toast('Fill required fields','error'); return; }
+
+  FINGGU_state.emis.push({
+    id: Date.now().toString(),
+    name: FINGGU_name, bank: FINGGU_bank,
+    amount: FINGGU_amount, total: FINGGU_total,
+    paid: FINGGU_paid, due: FINGGU_due,
+    tenure: FINGGU_tenure, rate: FINGGU_rate,
+    startDate: document.getElementById('finggu-emi-start').value || fingguFn_today(),
+    active: true,
+  });
+
+  fingguFn_save();
+  fingguFn_closeAllModals();
+  fingguFn_renderAll();
+  fingguFn_toast('EMI added!');
+};
+
+const fingguFn_deleteEMI = (id) => {
+  FINGGU_state.emis = FINGGU_state.emis.filter(e => e.id !== id);
+  fingguFn_save();
+  fingguFn_renderAll();
+};
+
+// ── SAVE BILL ─────────────────────────────────────────────────────────────────
+const fingguFn_saveBill = () => {
+  const FINGGU_name   = document.getElementById('finggu-bill-name').value.trim();
+  const FINGGU_amount = parseFloat(document.getElementById('finggu-bill-amount').value);
+  const FINGGU_due    = parseInt(document.getElementById('finggu-bill-due').value) || 1;
+  const FINGGU_cat    = document.getElementById('finggu-bill-cat').value;
+  const FINGGU_recur  = document.getElementById('finggu-bill-recur').value;
+
+  if (!FINGGU_name || !FINGGU_amount) { fingguFn_toast('Fill required fields','error'); return; }
+
+  FINGGU_state.bills.push({
+    id: Date.now().toString(),
+    name: FINGGU_name, amount: FINGGU_amount,
+    due: FINGGU_due, icon: FINGGU_cat,
+    recurrence: FINGGU_recur, paid: false,
+  });
+
+  fingguFn_save();
+  fingguFn_closeAllModals();
+  fingguFn_renderAll();
+  fingguFn_toast('Bill reminder added!');
+};
+
+const fingguFn_toggleBillPaid = (id) => {
+  const FINGGU_bill = FINGGU_state.bills.find(b => b.id === id);
+  if (FINGGU_bill) { FINGGU_bill.paid = !FINGGU_bill.paid; fingguFn_save(); fingguFn_renderBills(); }
+};
+
+const fingguFn_deleteBill = (id) => {
+  FINGGU_state.bills = FINGGU_state.bills.filter(b => b.id !== id);
+  fingguFn_save(); fingguFn_renderBills();
+};
+
+// ── SAVE GOAL ─────────────────────────────────────────────────────────────────
+const fingguFn_saveGoal = () => {
+  const FINGGU_name   = document.getElementById('finggu-goal-name').value.trim();
+  const FINGGU_target = parseFloat(document.getElementById('finggu-goal-target').value);
+  const FINGGU_saved  = parseFloat(document.getElementById('finggu-goal-saved').value) || 0;
+  const FINGGU_date   = document.getElementById('finggu-goal-date').value;
+  const FINGGU_emoji  = document.getElementById('finggu-goal-emoji').value;
+
+  if (!FINGGU_name || !FINGGU_target) { fingguFn_toast('Fill required fields','error'); return; }
+
+  FINGGU_state.goals.push({
+    id: Date.now().toString(),
+    name: FINGGU_name, target: FINGGU_target,
+    saved: FINGGU_saved, deadline: FINGGU_date, emoji: FINGGU_emoji,
+  });
+
+  fingguFn_save();
+  fingguFn_closeAllModals();
+  fingguFn_renderAll();
+  fingguFn_toast('Goal created! 🎯');
+};
+
+const fingguFn_openAddMoney = (id) => {
+  const FINGGU_goal = FINGGU_state.goals.find(g => g.id === id);
+  if (!FINGGU_goal) return;
+  document.getElementById('finggu-addmoney-id').value    = id;
+  document.getElementById('finggu-addmoney-title').textContent = 'Add Money → ' + FINGGU_goal.name;
+  document.getElementById('finggu-addmoney-amount').value = '';
+  fingguFn_openModal('addmoney');
+};
+
+const fingguFn_doAddMoney = () => {
+  const FINGGU_id     = document.getElementById('finggu-addmoney-id').value;
+  const FINGGU_amount = parseFloat(document.getElementById('finggu-addmoney-amount').value);
+  const FINGGU_goal   = FINGGU_state.goals.find(g => g.id === FINGGU_id);
+  if (!FINGGU_goal || !FINGGU_amount) return;
+  FINGGU_goal.saved += FINGGU_amount;
+  if (FINGGU_goal.saved >= FINGGU_goal.target) {
+    fingguFn_toast('🎉 Goal achieved! Congratulations!');
+  } else {
+    fingguFn_toast(`₹${FINGGU_amount.toLocaleString('en-IN')} added!`);
+  }
+  fingguFn_save();
+  fingguFn_closeAllModals();
+  fingguFn_renderSavings();
+};
+
+const fingguFn_deleteGoal = (id) => {
+  FINGGU_state.goals = FINGGU_state.goals.filter(g => g.id !== id);
+  fingguFn_save(); fingguFn_renderSavings();
+};
+
+// ── MEMBER ────────────────────────────────────────────────────────────────────
+const fingguFn_openAddMember = () => fingguFn_openModal('member');
+
+const fingguFn_selectMemberIcon = (el) => {
+  document.querySelectorAll('.finggu-member-icon-opt').forEach(e => e.style.borderColor = 'transparent');
+  el.style.borderColor = 'var(--finggu-accent)';
+  document.getElementById('finggu-member-icon-val').value = el.textContent;
+};
+
+const fingguFn_saveMember = () => {
+  const FINGGU_name   = document.getElementById('finggu-member-name').value.trim();
+  const FINGGU_budget = parseFloat(document.getElementById('finggu-member-budget').value) || 0;
+  const FINGGU_icon   = document.getElementById('finggu-member-icon-val').value;
+  if (!FINGGU_name) { fingguFn_toast('Enter a name','error'); return; }
+  FINGGU_state.members.push({ id: Date.now().toString(), name: FINGGU_name, icon: FINGGU_icon, budget: FINGGU_budget });
+  fingguFn_save();
+  fingguFn_closeAllModals();
+  fingguFn_renderFamily();
+  fingguFn_populateMemberSelect();
+  fingguFn_toast('Member added!');
+};
+
+// ── RENDER EXPENSES ───────────────────────────────────────────────────────────
+const fingguFn_getMonthExpenses = () =>
+  FINGGU_state.expenses.filter(e => e.month === FINGGU_state.activeMonth);
+
+const fingguFn_renderExpenses = () => {
+  const FINGGU_all  = fingguFn_getMonthExpenses();
+  const FINGGU_income  = FINGGU_all.filter(e => e.type === 'income').reduce((s,e) => s+e.amount, 0);
+  const FINGGU_expense = FINGGU_all.filter(e => e.type === 'expense').reduce((s,e) => s+e.amount, 0);
+  const FINGGU_net     = FINGGU_income - FINGGU_expense;
+
+  // Summary cards
+  document.getElementById('finggu-expense-summary').innerHTML = `
+    <div class="finggu-summary-card income">
+      <div class="finggu-summary-label">${fingguFn_t('total_income')}</div>
+      <div class="finggu-summary-value">${fingguFn_rupee(FINGGU_income)}</div>
+      <div class="finggu-summary-sub">this month</div>
+    </div>
+    <div class="finggu-summary-card expense">
+      <div class="finggu-summary-label">${fingguFn_t('total_expense')}</div>
+      <div class="finggu-summary-value">${fingguFn_rupee(FINGGU_expense)}</div>
+      <div class="finggu-summary-sub">this month</div>
+    </div>
+    <div class="finggu-summary-card savings">
+      <div class="finggu-summary-label">${fingguFn_t('net_savings')}</div>
+      <div class="finggu-summary-value">${fingguFn_rupee(Math.abs(FINGGU_net))}</div>
+      <div class="finggu-summary-sub">${FINGGU_net >= 0 ? '✓ saved' : '↑ overspent'}</div>
+    </div>
+    <div class="finggu-summary-card balance">
+      <div class="finggu-summary-label">Transactions</div>
+      <div class="finggu-summary-value">${FINGGU_all.length}</div>
+      <div class="finggu-summary-sub">this month</div>
+    </div>
+  `;
+
+  // Category chart
+  const FINGGU_catFilter = document.getElementById('finggu-cat-filter');
+  const FINGGU_byCategory = {};
+  FINGGU_all.filter(e => e.type === 'expense').forEach(e => {
+    FINGGU_byCategory[e.category] = (FINGGU_byCategory[e.category] || 0) + e.amount;
+  });
+  const FINGGU_catTotal = Object.values(FINGGU_byCategory).reduce((s,v) => s+v, 0) || 1;
+  const FINGGU_sortedCats = Object.entries(FINGGU_byCategory).sort((a,b) => b[1]-a[1]);
+
+  document.getElementById('finggu-cat-chart').innerHTML = FINGGU_sortedCats.length ? `
+    <div>${FINGGU_sortedCats.map(([catId, amt]) => {
+      const FINGGU_cat = FINGGU_CAT_MAP[catId] || FINGGU_CATEGORIES[FINGGU_CATEGORIES.length-1];
+      const FINGGU_pct = Math.round(amt/FINGGU_catTotal*100);
+      return `
+        <div class="finggu-bar-item">
+          <div class="finggu-bar-header">
+            <span>${FINGGU_cat.icon} ${FINGGU_cat.label}</span>
+            <span>${fingguFn_rupeeExact(amt)} <span style="color:var(--finggu-muted)">(${FINGGU_pct}%)</span></span>
+          </div>
+          <div class="finggu-bar-track">
+            <div class="finggu-bar-fill" style="width:${FINGGU_pct}%;background:${FINGGU_cat.color}"></div>
+          </div>
+        </div>`;
+    }).join('')}</div>
+  ` : '<div style="color:var(--finggu-muted);font-size:13px;text-align:center;padding:16px">No expenses this month</div>';
+
+  // Filter
+  FINGGU_catFilter.innerHTML = '<option value="">All Categories</option>' +
+    FINGGU_CATEGORIES.map(c => `<option value="${c.id}">${c.icon} ${c.label}</option>`).join('');
+
+  // Transaction list
+  const FINGGU_filtered = FINGGU_catFilter.value
+    ? FINGGU_all.filter(e => e.category === FINGGU_catFilter.value)
+    : FINGGU_all;
+
+  if (!FINGGU_filtered.length) {
+    document.getElementById('finggu-expense-list').innerHTML = `
+      <div class="finggu-empty">
+        <div class="finggu-empty-icon">💸</div>
+        <div class="finggu-empty-title">${fingguFn_t('no_expenses')}</div>
+        <div class="finggu-empty-sub">Tap ＋ to add your first transaction</div>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('finggu-expense-list').innerHTML = FINGGU_filtered.map(e => {
+    const FINGGU_cat = FINGGU_CAT_MAP[e.category] || FINGGU_CATEGORIES[FINGGU_CATEGORIES.length-1];
+    const FINGGU_isIncome = e.type === 'income';
+    return `
+      <div class="finggu-card">
+        <div class="finggu-card-row">
+          <div class="finggu-card-row-left">
+            <div class="finggu-category-dot" style="background:${FINGGU_cat.color}22;color:${FINGGU_cat.color}">${FINGGU_cat.icon}</div>
+            <div>
+              <div class="finggu-card-label">${e.desc}</div>
+              <div class="finggu-card-sublabel">${e.date} · ${FINGGU_cat.label}</div>
+            </div>
+          </div>
+          <div class="finggu-card-actions">
+            <div class="finggu-card-amount ${FINGGU_isIncome ? 'positive' : 'negative'}">
+              ${FINGGU_isIncome ? '+' : '-'}${fingguFn_rupeeExact(e.amount)}
+            </div>
+            <button class="finggu-btn finggu-btn-ghost finggu-btn-sm" onclick="fingguFn_deleteExpense('${e.id}')" style="opacity:.5">✕</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+};
+
+// ── RENDER EMI ────────────────────────────────────────────────────────────────
+const fingguFn_renderEMI = () => {
+  const FINGGU_totalEMI  = FINGGU_state.emis.reduce((s,e) => s+e.amount, 0);
+  const FINGGU_totalDebt = FINGGU_state.emis.reduce((s,e) => s+(e.total-e.paid), 0);
+
+  document.getElementById('finggu-emi-summary').innerHTML = `
+    <div class="finggu-summary-card expense">
+      <div class="finggu-summary-label">Monthly EMI</div>
+      <div class="finggu-summary-value">${fingguFn_rupee(FINGGU_totalEMI)}</div>
+      <div class="finggu-summary-sub">every month</div>
+    </div>
+    <div class="finggu-summary-card balance">
+      <div class="finggu-summary-label">Total Debt</div>
+      <div class="finggu-summary-value">${fingguFn_rupee(FINGGU_totalDebt)}</div>
+      <div class="finggu-summary-sub">outstanding</div>
+    </div>
+    <div class="finggu-summary-card savings">
+      <div class="finggu-summary-label">Active Loans</div>
+      <div class="finggu-summary-value">${FINGGU_state.emis.length}</div>
+      <div class="finggu-summary-sub">loans</div>
+    </div>
+    <div class="finggu-summary-card income">
+      <div class="finggu-summary-label">Total Paid</div>
+      <div class="finggu-summary-value">${fingguFn_rupee(FINGGU_state.emis.reduce((s,e)=>s+e.paid,0))}</div>
+      <div class="finggu-summary-sub">so far</div>
+    </div>
+  `;
+
+  if (!FINGGU_state.emis.length) {
+    document.getElementById('finggu-emi-list').innerHTML = `
+      <div class="finggu-empty">
+        <div class="finggu-empty-icon">🏦</div>
+        <div class="finggu-empty-title">${fingguFn_t('no_emis')}</div>
+        <div class="finggu-empty-sub">Tap ＋ to track your EMIs</div>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('finggu-emi-list').innerHTML = FINGGU_state.emis.map(e => {
+    const FINGGU_pct  = e.total > 0 ? Math.round(e.paid/e.total*100) : 0;
+    const FINGGU_remaining = e.total - e.paid;
+    const FINGGU_daysLeft  = fingguFn_daysUntil(e.due);
+    const FINGGU_dueBadge  = FINGGU_daysLeft <= 0
+      ? `<span class="finggu-badge finggu-badge-red">Overdue</span>`
+      : FINGGU_daysLeft <= 5
+      ? `<span class="finggu-badge finggu-badge-yellow">Due in ${FINGGU_daysLeft}d</span>`
+      : `<span class="finggu-badge finggu-badge-blue">Due ${FINGGU_daysLeft}d</span>`;
+
+    return `
+      <div class="finggu-emi-card">
+        <div class="finggu-emi-header">
+          <div>
+            <div class="finggu-emi-name">🏦 ${e.name} ${FINGGU_dueBadge}</div>
+            <div class="finggu-emi-bank">${e.bank || 'Loan'} · Due on ${e.due}th every month</div>
+          </div>
+          <div style="text-align:right">
+            <div class="finggu-emi-amount">${fingguFn_rupeeExact(e.amount)}<span>/mo</span></div>
+            <button class="finggu-btn finggu-btn-ghost finggu-btn-sm" onclick="fingguFn_deleteEMI('${e.id}')" style="margin-top:4px;opacity:.5">Remove</button>
+          </div>
+        </div>
+        <div class="finggu-emi-stats">
+          <div>
+            <div class="finggu-emi-stat-label">Total Loan</div>
+            <div class="finggu-emi-stat-value">${fingguFn_rupee(e.total)}</div>
+          </div>
+          <div>
+            <div class="finggu-emi-stat-label">Paid</div>
+            <div class="finggu-emi-stat-value" style="color:var(--finggu-green)">${fingguFn_rupee(e.paid)}</div>
+          </div>
+          <div>
+            <div class="finggu-emi-stat-label">Remaining</div>
+            <div class="finggu-emi-stat-value" style="color:var(--finggu-red)">${fingguFn_rupee(FINGGU_remaining)}</div>
+          </div>
+        </div>
+        <div class="finggu-progress-wrap">
+          <div class="finggu-progress-bar">
+            <div class="finggu-progress-fill green" style="width:${FINGGU_pct}%"></div>
+          </div>
+          <div class="finggu-progress-text">
+            <span>${FINGGU_pct}% paid off</span>
+            <span>${fingguFn_rupee(FINGGU_remaining)} left</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+};
+
+// ── RENDER BILLS ──────────────────────────────────────────────────────────────
+const fingguFn_renderBills = () => {
+  if (!FINGGU_state.bills.length) {
+    document.getElementById('finggu-bills-list').innerHTML = `
+      <div class="finggu-empty">
+        <div class="finggu-empty-icon">📋</div>
+        <div class="finggu-empty-title">${fingguFn_t('no_bills')}</div>
+        <div class="finggu-empty-sub">Tap ＋ to add bill reminders</div>
+      </div>`;
+    return;
+  }
+
+  const FINGGU_sorted = [...FINGGU_state.bills].sort((a,b) => fingguFn_daysUntil(a.due) - fingguFn_daysUntil(b.due));
+
+  document.getElementById('finggu-bills-list').innerHTML = FINGGU_sorted.map(b => {
+    const FINGGU_days  = fingguFn_daysUntil(b.due);
+    const FINGGU_statusClass = b.paid ? 'ok' : FINGGU_days <= 0 ? 'overdue' : FINGGU_days <= 5 ? 'soon' : 'ok';
+    const FINGGU_statusText  = b.paid ? `✓ ${fingguFn_t('paid')}`
+      : FINGGU_days <= 0 ? `⚠ ${fingguFn_t('overdue')}`
+      : FINGGU_days <= 5 ? `Due in ${FINGGU_days} days`
+      : `Due on ${b.due}th`;
+
+    return `
+      <div class="finggu-bill-card" style="${b.paid ? 'opacity:.5' : ''}">
+        <div class="finggu-bill-left">
+          <div class="finggu-bill-icon" style="background:var(--finggu-elevated)">${b.icon}</div>
+          <div>
+            <div class="finggu-bill-name">${b.name}</div>
+            <div class="finggu-bill-due ${FINGGU_statusClass}">${FINGGU_statusText}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div>
+            <div class="finggu-bill-amount">${fingguFn_rupeeExact(b.amount)}</div>
+            <div class="finggu-bill-status">${b.recurrence}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <button class="finggu-btn finggu-btn-sm ${b.paid ? 'finggu-btn-ghost' : 'finggu-btn-primary'}" onclick="fingguFn_toggleBillPaid('${b.id}')" style="font-size:11px">
+              ${b.paid ? 'Unpay' : 'Mark Paid'}
+            </button>
+            <button class="finggu-btn finggu-btn-ghost finggu-btn-sm" onclick="fingguFn_deleteBill('${b.id}')" style="opacity:.5;font-size:11px">Remove</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+};
+
+// ── RENDER SAVINGS ────────────────────────────────────────────────────────────
+const fingguFn_renderSavings = () => {
+  const FINGGU_totalTarget = FINGGU_state.goals.reduce((s,g) => s+g.target, 0);
+  const FINGGU_totalSaved  = FINGGU_state.goals.reduce((s,g) => s+g.saved, 0);
+
+  document.getElementById('finggu-savings-summary').innerHTML = `
+    <div class="finggu-summary-card savings">
+      <div class="finggu-summary-label">Total Saved</div>
+      <div class="finggu-summary-value">${fingguFn_rupee(FINGGU_totalSaved)}</div>
+      <div class="finggu-summary-sub">across all goals</div>
+    </div>
+    <div class="finggu-summary-card balance">
+      <div class="finggu-summary-label">Still Needed</div>
+      <div class="finggu-summary-value">${fingguFn_rupee(Math.max(0,FINGGU_totalTarget-FINGGU_totalSaved))}</div>
+      <div class="finggu-summary-sub">to reach goals</div>
+    </div>
+    <div class="finggu-summary-card income">
+      <div class="finggu-summary-label">Goals</div>
+      <div class="finggu-summary-value">${FINGGU_state.goals.length}</div>
+      <div class="finggu-summary-sub">active goals</div>
+    </div>
+    <div class="finggu-summary-card expense">
+      <div class="finggu-summary-label">Completed</div>
+      <div class="finggu-summary-value">${FINGGU_state.goals.filter(g=>g.saved>=g.target).length}</div>
+      <div class="finggu-summary-sub">🎉 achieved</div>
+    </div>
+  `;
+
+  if (!FINGGU_state.goals.length) {
+    document.getElementById('finggu-goals-list').innerHTML = `
+      <div class="finggu-empty">
+        <div class="finggu-empty-icon">🎯</div>
+        <div class="finggu-empty-title">${fingguFn_t('no_goals')}</div>
+        <div class="finggu-empty-sub">Tap ＋ to create your first savings goal</div>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('finggu-goals-list').innerHTML = FINGGU_state.goals.map(g => {
+    const FINGGU_pct  = Math.min(100, Math.round(g.saved/g.target*100));
+    const FINGGU_done = g.saved >= g.target;
+    const FINGGU_daysLeft = g.deadline
+      ? Math.ceil((new Date(g.deadline) - new Date()) / 86400000)
+      : null;
+    const FINGGU_monthly = g.deadline && FINGGU_daysLeft > 0
+      ? Math.ceil((g.target - g.saved) / (FINGGU_daysLeft / 30))
+      : null;
+
+    return `
+      <div class="finggu-goal-card ${FINGGU_done ? 'style="border-color:var(--finggu-green)"' : ''}">
+        <div class="finggu-goal-header">
+          <div class="finggu-goal-name">
+            <span class="finggu-goal-emoji">${g.emoji}</span>
+            ${g.name}
+            ${FINGGU_done ? '<span class="finggu-badge finggu-badge-green">Achieved! 🎉</span>' : ''}
+          </div>
+          <button class="finggu-btn finggu-btn-ghost finggu-btn-sm" onclick="fingguFn_deleteGoal('${g.id}')" style="opacity:.4">✕</button>
+        </div>
+        <div class="finggu-goal-amounts">
+          <span>Target: <strong>${fingguFn_rupeeExact(g.target)}</strong></span>
+          ${g.deadline ? `<span>By ${new Date(g.deadline).toLocaleDateString('en-IN')}</span>` : ''}
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+          <div class="finggu-goal-saved">${fingguFn_rupeeExact(g.saved)}</div>
+          <div style="font-size:12px;color:var(--finggu-muted)">${fingguFn_rupeeExact(g.target-g.saved)} more needed</div>
+        </div>
+        <div class="finggu-progress-bar">
+          <div class="finggu-progress-fill ${FINGGU_done ? 'green' : 'blue'}" style="width:${FINGGU_pct}%"></div>
+        </div>
+        <div class="finggu-progress-text">
+          <span>${FINGGU_pct}% complete</span>
+          ${FINGGU_monthly ? `<span>~${fingguFn_rupee(FINGGU_monthly)}/month needed</span>` : ''}
+        </div>
+        ${!FINGGU_done ? `<button class="finggu-add-money-btn" onclick="fingguFn_openAddMoney('${g.id}')">+ Add Money</button>` : ''}
+      </div>`;
+  }).join('');
+};
+
+// ── RENDER FAMILY ─────────────────────────────────────────────────────────────
+const fingguFn_renderFamily = () => {
+  // Members row
+  document.getElementById('finggu-members-row').innerHTML =
+    `<span class="finggu-member-chip ${FINGGU_state.activeMember==='all'?'active':''}" onclick="fingguFn_setActiveMember('all')">👥 All</span>` +
+    FINGGU_state.members.map(m => `
+      <span class="finggu-member-chip ${FINGGU_state.activeMember===m.id?'active':''}" onclick="fingguFn_setActiveMember('${m.id}')">
+        ${m.icon} ${m.name}
+      </span>
+    `).join('');
+
+  const FINGGU_month   = FINGGU_state.activeMonth;
+  const FINGGU_content = document.getElementById('finggu-family-content');
+
+  const FINGGU_rows = FINGGU_state.members.map(m => {
+    const FINGGU_expenses = FINGGU_state.expenses.filter(e =>
+      e.month === FINGGU_month && e.type === 'expense' &&
+      (FINGGU_state.activeMember === 'all' || e.member === m.id || e.member === 'default')
+    );
+    const FINGGU_spent = FINGGU_expenses.filter(e => e.member === m.id).reduce((s,e)=>s+e.amount,0);
+    const FINGGU_pct   = m.budget > 0 ? Math.min(100,Math.round(FINGGU_spent/m.budget*100)) : 0;
+
+    return `
+      <div class="finggu-budget-row">
+        <div style="display:flex;align-items:center;gap:10px;flex:1">
+          <span style="font-size:24px">${m.icon}</span>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;margin-bottom:6px">${m.name}
+              <span style="font-size:12px;color:var(--finggu-muted);font-weight:400">
+                Budget: ${fingguFn_rupeeExact(m.budget)}
+              </span>
+            </div>
+            <div class="finggu-progress-bar">
+              <div class="finggu-progress-fill ${FINGGU_pct>=90?'red':FINGGU_pct>=70?'':'green'}" style="width:${FINGGU_pct}%"></div>
+            </div>
+            <div class="finggu-progress-text">
+              <span>Spent: ${fingguFn_rupeeExact(FINGGU_spent)}</span>
+              <span>${fingguFn_rupeeExact(Math.max(0,m.budget-FINGGU_spent))} left</span>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Total family spending
+  const FINGGU_monthExpenses = FINGGU_state.expenses.filter(e => e.month === FINGGU_month && e.type === 'expense');
+  const FINGGU_total = FINGGU_monthExpenses.reduce((s,e)=>s+e.amount,0);
+
+  FINGGU_content.innerHTML = `
+    <div class="finggu-card" style="margin-bottom:16px">
+      <div class="finggu-card-body">
+        <div style="font-size:13px;color:var(--finggu-muted);margin-bottom:4px">Family spending this month</div>
+        <div style="font-size:28px;font-weight:800;color:var(--finggu-orange)">${fingguFn_rupeeExact(FINGGU_total)}</div>
+      </div>
+    </div>
+    <div class="finggu-card">
+      <div class="finggu-card-body">
+        <div style="font-size:13px;font-weight:600;color:var(--finggu-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Member Budgets</div>
+        ${FINGGU_rows || '<div style="color:var(--finggu-muted);font-size:13px">Add family members to track individual budgets</div>'}
+      </div>
+    </div>`;
+};
+
+const fingguFn_setActiveMember = (id) => {
+  FINGGU_state.activeMember = id;
+  fingguFn_renderFamily();
+};
+
+// ── RENDER ALL ────────────────────────────────────────────────────────────────
+const fingguFn_renderAll = () => {
+  switch(FINGGU_state.activeTab) {
+    case 'expenses': fingguFn_renderExpenses(); break;
+    case 'emi':      fingguFn_renderEMI();      break;
+    case 'bills':    fingguFn_renderBills();    break;
+    case 'savings':  fingguFn_renderSavings();  break;
+    case 'family':   fingguFn_renderFamily();   break;
+  }
+};
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+const fingguFn_init = () => {
+  fingguFn_load();
+  fingguFn_initMonthSelector();
+  fingguFn_renderCatPicker();
+  fingguFn_populateMemberSelect();
+  fingguFn_applyI18n();
+  fingguFn_renderAll();
+
+  // Set today's date in forms
+  document.getElementById('finggu-exp-date').value  = fingguFn_today();
+  document.getElementById('finggu-emi-start').value = fingguFn_today();
+  document.getElementById('finggu-goal-date').value = '';
+
+  // Update category filter when tab loaded
+  document.getElementById('finggu-cat-filter').addEventListener('change', fingguFn_renderExpenses);
+
+  // Bill reminder badge — count overdue
+  const fingguFn_updateBillBadge = () => {
+    const FINGGU_overdue = FINGGU_state.bills.filter(b => !b.paid && fingguFn_daysUntil(b.due) <= 3).length;
+    if (FINGGU_overdue > 0) {
+      const FINGGU_billTab = document.querySelector('[data-tab="bills"] .finggu-tab-label');
+      if (FINGGU_billTab) FINGGU_billTab.innerHTML += ` <span class="finggu-badge finggu-badge-red">${FINGGU_overdue}</span>`;
+    }
+  };
+  fingguFn_updateBillBadge();
+
+  console.log('%cfinggu-life loaded ✓ by Finggu (finggu.com)', 'color:#f78166;font-weight:bold;font-size:14px');
+};
+
+fingguFn_init();
+</script>
+</body>
+</html>
