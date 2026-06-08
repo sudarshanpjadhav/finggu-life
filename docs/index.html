@@ -395,6 +395,33 @@ body{
 /* ── Animations ── */
 @keyframes fingguFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .finggu-section.active{animation:fingguFadeIn .2s ease}
+
+/* ── Settings Tab Styles ── */
+.finggu-settings-card{
+  background:var(--finggu-card);border:1px solid var(--finggu-border);
+  border-radius:var(--finggu-radius);padding:18px;margin-bottom:14px;
+}
+.finggu-settings-card-title{font-size:15px;font-weight:700;margin-bottom:3px}
+.finggu-settings-card-sub{font-size:12px;color:var(--finggu-muted)}
+.finggu-cat-manage-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 0;border-bottom:1px solid var(--finggu-border);gap:10px;
+}
+.finggu-cat-manage-row:last-child{border-bottom:none}
+.finggu-cat-drag{color:var(--finggu-muted);cursor:grab;font-size:16px;padding:4px;flex-shrink:0}
+.finggu-cat-row-icon{font-size:22px;width:36px;text-align:center;flex-shrink:0}
+.finggu-cat-row-label{flex:1;font-size:14px;font-weight:500}
+.finggu-cat-row-color{width:20px;height:20px;border-radius:50%;flex-shrink:0;border:2px solid var(--finggu-border)}
+.finggu-cat-edit-btn{background:var(--finggu-elevated);border:1px solid var(--finggu-border);color:var(--finggu-text);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer}
+.finggu-cat-del-btn{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.2);color:var(--finggu-red);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer}
+.finggu-color-picker-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.finggu-color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:transform .15s}
+.finggu-color-swatch.selected{border-color:#fff;transform:scale(1.2)}
+.finggu-emoji-picker-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;max-height:140px;overflow-y:auto}
+.finggu-emoji-opt{font-size:22px;cursor:pointer;padding:4px;border-radius:6px;border:2px solid transparent}
+.finggu-emoji-opt.selected{border-color:var(--finggu-accent);background:rgba(247,129,102,.1)}
+.finggu-reminder-day-btn{transition:all .15s}
+.finggu-reminder-day-btn.active{background:var(--finggu-accent);color:#fff;border-color:var(--finggu-accent)}
 </style>
 </head>
 <body>
@@ -431,6 +458,9 @@ body{
   </div>
   <div class="finggu-tab" onclick="fingguFn_switchTab('family')" data-tab="family">
     <span class="finggu-tab-icon">👨‍👩‍👧</span><span class="finggu-tab-label" data-i18n="tab_family">Family</span>
+  </div>
+  <div class="finggu-tab" onclick="fingguFn_switchTab('settings')" data-tab="settings">
+    <span class="finggu-tab-icon">⚙️</span><span class="finggu-tab-label">Settings</span>
   </div>
 </div>
 
@@ -479,6 +509,67 @@ body{
     <div id="finggu-goals-list"></div>
   </div>
 
+  <!-- SETTINGS TAB -->
+  <div class="finggu-section" id="finggu-sec-settings">
+
+    <div class="finggu-settings-card">
+      <div class="finggu-settings-card-title">💰 Monthly Income</div>
+      <div class="finggu-settings-card-sub">Set your expected income to calculate savings rate</div>
+      <div style="display:flex;gap:10px;margin-top:12px;align-items:center">
+        <span style="font-size:18px;font-weight:700;color:var(--finggu-muted)">₹</span>
+        <input class="finggu-input" type="number" id="finggu-setting-income" placeholder="30000" style="flex:1">
+        <button class="finggu-btn finggu-btn-primary finggu-btn-sm" onclick="fingguFn_saveIncomeSetting()">Save</button>
+      </div>
+    </div>
+
+    <div class="finggu-settings-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div class="finggu-settings-card-title">🏷️ Categories</div>
+        <button class="finggu-btn finggu-btn-primary finggu-btn-sm" onclick="fingguFn_openAddCategoryModal()">+ Add</button>
+      </div>
+      <div class="finggu-settings-card-sub">Add, rename or remove expense categories</div>
+      <div id="finggu-category-manager" style="margin-top:14px"></div>
+    </div>
+
+    <div class="finggu-settings-card">
+      <div class="finggu-settings-card-title">🔔 Bill Reminder Days</div>
+      <div class="finggu-settings-card-sub">How many days before due date to show warning</div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="finggu-btn finggu-btn-sm finggu-reminder-day-btn" onclick="fingguFn_setReminderDays(3)" data-days="3">3 days</button>
+        <button class="finggu-btn finggu-btn-sm finggu-reminder-day-btn" onclick="fingguFn_setReminderDays(5)" data-days="5">5 days</button>
+        <button class="finggu-btn finggu-btn-sm finggu-reminder-day-btn" onclick="fingguFn_setReminderDays(7)" data-days="7">7 days</button>
+        <button class="finggu-btn finggu-btn-sm finggu-reminder-day-btn" onclick="fingguFn_setReminderDays(10)" data-days="10">10 days</button>
+      </div>
+    </div>
+
+    <div class="finggu-settings-card">
+      <div class="finggu-settings-card-title">📦 Your Data</div>
+      <div class="finggu-settings-card-sub">Export to back up, import to restore or move to another device</div>
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+        <button class="finggu-btn finggu-btn-ghost" onclick="fingguFn_exportData()">⬇️ Export JSON</button>
+        <button class="finggu-btn finggu-btn-ghost" onclick="fingguFn_exportCSV()">📊 Export CSV</button>
+        <label class="finggu-btn finggu-btn-ghost" style="cursor:pointer">⬆️ Import JSON<input type="file" accept=".json" id="finggu-import-file" onchange="fingguFn_importData(event)" style="display:none"></label>
+      </div>
+    </div>
+
+    <div class="finggu-settings-card" style="border-color:rgba(248,81,73,.3)">
+      <div class="finggu-settings-card-title" style="color:var(--finggu-red)">⚠️ Danger Zone</div>
+      <div class="finggu-settings-card-sub">These actions cannot be undone</div>
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+        <button class="finggu-btn finggu-btn-danger finggu-btn-sm" onclick="fingguFn_clearMonthData()">Clear This Month</button>
+        <button class="finggu-btn finggu-btn-danger finggu-btn-sm" onclick="fingguFn_clearAllData()">Reset All Data</button>
+      </div>
+    </div>
+
+    <div class="finggu-settings-card" style="text-align:center;border-style:dashed">
+      <div style="font-size:28px;margin-bottom:8px">₹</div>
+      <div style="font-weight:700;font-size:15px">finggu-life</div>
+      <div style="font-size:12px;color:var(--finggu-muted);margin-top:4px">Your money, your account</div>
+      <div style="font-size:11px;color:var(--finggu-muted);margin-top:8px">v1.0.0 · No signup · No ads · Works offline</div>
+      <a href="https://github.com/sudarshanpjadhav/finggu-life" target="_blank" style="display:inline-block;margin-top:10px;font-size:12px;color:var(--finggu-accent2);text-decoration:none">Star on GitHub</a>
+    </div>
+
+  </div>
   <!-- ═══ FAMILY TAB ═══ -->
   <div class="finggu-section" id="finggu-sec-family">
     <div class="finggu-section-header">
@@ -489,6 +580,39 @@ body{
     <div id="finggu-family-content"></div>
   </div>
 
+</div>
+
+
+<!-- Add Category Modal -->
+<div class="finggu-modal-overlay" id="finggu-modal-addcat">
+  <div class="finggu-modal">
+    <div class="finggu-modal-handle"></div>
+    <div class="finggu-modal-title" id="finggu-addcat-title">Add Category</div>
+    <input type="hidden" id="finggu-editcat-id">
+    <div class="finggu-form-group">
+      <label class="finggu-form-label">Category Name</label>
+      <input class="finggu-input" type="text" id="finggu-cat-name" placeholder="e.g. Groceries, Medical, Pets...">
+    </div>
+    <div class="finggu-form-group">
+      <label class="finggu-form-label">Choose Emoji / Icon</label>
+      <input class="finggu-input" type="text" id="finggu-cat-icon" placeholder="Paste emoji: 🛒" maxlength="4" style="font-size:22px;text-align:center">
+      <div class="finggu-emoji-picker-row" id="finggu-emoji-picker"></div>
+    </div>
+    <div class="finggu-form-group">
+      <label class="finggu-form-label">Choose Color</label>
+      <div class="finggu-color-picker-row" id="finggu-color-picker"></div>
+      <input type="hidden" id="finggu-cat-color" value="#f78166">
+    </div>
+    <div class="finggu-form-group">
+      <label class="finggu-form-label">Category Type</label>
+      <select class="finggu-select" id="finggu-cat-type">
+        <option value="expense">💸 Expense</option>
+        <option value="income">💰 Income</option>
+        <option value="both">🔄 Both</option>
+      </select>
+    </div>
+    <button class="finggu-btn finggu-btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="fingguFn_saveCategory()">Save Category</button>
+  </div>
 </div>
 
 <!-- FAB -->
@@ -907,6 +1031,9 @@ const fingguFn_switchTab = (tab) => {
   document.querySelectorAll('.finggu-section').forEach(s => {
     s.classList.toggle('active', s.id === 'finggu-sec-'+tab);
   });
+  // Hide FAB on settings tab
+  const FINGGU_fab = document.getElementById('finggu-fab');
+  if (FINGGU_fab) FINGGU_fab.style.display = tab === 'settings' ? 'none' : 'flex';
   fingguFn_renderAll();
 };
 
@@ -1553,12 +1680,14 @@ const fingguFn_renderAll = () => {
     case 'bills':    fingguFn_renderBills();    break;
     case 'savings':  fingguFn_renderSavings();  break;
     case 'family':   fingguFn_renderFamily();   break;
+    case 'settings': fingguFn_renderSettings(); break;
   }
 };
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 const fingguFn_init = () => {
   fingguFn_load();
+  fingguFn_refreshCategories(); // apply custom categories on startup
   fingguFn_initMonthSelector();
   fingguFn_renderCatPicker();
   fingguFn_populateMemberSelect();
@@ -1584,6 +1713,372 @@ const fingguFn_init = () => {
   fingguFn_updateBillBadge();
 
   console.log('%cfinggu-life loaded ✓ by Finggu (finggu.com)', 'color:#f78166;font-weight:bold;font-size:14px');
+};
+
+
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  finggu-life SETTINGS ENGINE                                 ║
+// ║  Custom categories, export/import, reminders, income        ║
+// ╚══════════════════════════════════════════════════════════════╝
+
+// ── Default categories (built-in, can be extended) ────────────────────────────
+const FINGGU_DEFAULT_CATEGORIES = [
+  { id:'food',       label:'Food',      icon:'🍛', color:'#f78166', type:'expense' },
+  { id:'transport',  label:'Travel',    icon:'🚗', color:'#79c0ff', type:'expense' },
+  { id:'shopping',   label:'Shopping',  icon:'🛍️', color:'#bc8cff', type:'expense' },
+  { id:'health',     label:'Health',    icon:'🏥', color:'#3fb950', type:'expense' },
+  { id:'utility',    label:'Utility',   icon:'💡', color:'#ffa657', type:'expense' },
+  { id:'emi',        label:'EMI',       icon:'🏦', color:'#d29922', type:'expense' },
+  { id:'education',  label:'Study',     icon:'📚', color:'#39d353', type:'expense' },
+  { id:'entertain',  label:'Fun',       icon:'🎬', color:'#f85149', type:'expense' },
+  { id:'salary',     label:'Salary',    icon:'💰', color:'#3fb950', type:'income'  },
+  { id:'invest',     label:'Invest',    icon:'📈', color:'#79c0ff', type:'both'    },
+  { id:'other',      label:'Other',     icon:'🔖', color:'#7d8590', type:'both'    },
+];
+
+// ── Emoji palette for category picker ────────────────────────────────────────
+const FINGGU_EMOJI_PALETTE = [
+  '🍛','🍕','🍔','☕','🛒','🛍️','👗','👟','🚗','🚕','🚌','✈️',
+  '🏠','🏥','💊','🏋️','📚','🎓','🎬','🎮','🎵','📱','💻','⌚',
+  '💡','🌐','💧','🔥','📺','🏦','💰','📈','💳','🎁','🐾','👶',
+  '🛵','🔧','🌿','🍺','🎯','🧴','✂️','🔖','🏷️','⭐','🌟','❤️',
+];
+
+// ── Color palette ─────────────────────────────────────────────────────────────
+const FINGGU_COLOR_PALETTE = [
+  '#f78166','#ffa657','#d29922','#3fb950','#39d353',
+  '#79c0ff','#38bdf8','#bc8cff','#a78bfa','#f472b6',
+  '#fb923c','#4ade80','#34d399','#60a5fa','#e879f9',
+  '#f85149','#7d8590','#58a6ff','#ffd700','#ff6b6b',
+];
+
+// ── fingguFn_getCategories — always returns merged default + custom ────────────
+const fingguFn_getCategories = () => {
+  const FINGGU_custom = FINGGU_state.customCategories || [];
+  // Remove defaults that were deleted by user
+  const FINGGU_deleted = new Set(FINGGU_state.deletedDefaultCats || []);
+  const FINGGU_defaults = FINGGU_DEFAULT_CATEGORIES.filter(c => !FINGGU_deleted.has(c.id));
+  // Merge: defaults first, then custom (deduplicated by id)
+  const FINGGU_all = [...FINGGU_defaults];
+  FINGGU_custom.forEach(c => {
+    if (!FINGGU_all.find(d => d.id === c.id)) FINGGU_all.push(c);
+  });
+  return FINGGU_all;
+};
+
+// ── Override FINGGU_CATEGORIES with dynamic version ───────────────────────────
+// (Called after every state change that affects categories)
+const fingguFn_refreshCategories = () => {
+  const FINGGU_cats = fingguFn_getCategories();
+  // Repopulate global FINGGU_CATEGORIES array in place
+  FINGGU_CATEGORIES.length = 0;
+  FINGGU_cats.forEach(c => FINGGU_CATEGORIES.push(c));
+  // Rebuild cat map
+  Object.keys(FINGGU_CAT_MAP).forEach(k => delete FINGGU_CAT_MAP[k]);
+  FINGGU_CATEGORIES.forEach(c => FINGGU_CAT_MAP[c.id] = c);
+};
+
+// ── Render Settings tab ───────────────────────────────────────────────────────
+const fingguFn_renderSettings = () => {
+  // Income field
+  const FINGGU_incomeEl = document.getElementById('finggu-setting-income');
+  if (FINGGU_incomeEl) FINGGU_incomeEl.value = FINGGU_state.monthlyIncome || '';
+
+  // Reminder days buttons
+  const FINGGU_days = FINGGU_state.reminderDays || 5;
+  document.querySelectorAll('.finggu-reminder-day-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.days) === FINGGU_days);
+    btn.className = btn.classList.contains('active')
+      ? 'finggu-btn finggu-btn-sm finggu-reminder-day-btn finggu-btn-primary'
+      : 'finggu-btn finggu-btn-sm finggu-reminder-day-btn finggu-btn-ghost';
+  });
+
+  // Category manager
+  fingguFn_renderCategoryManager();
+};
+
+// ── Render the manage-categories list ─────────────────────────────────────────
+const fingguFn_renderCategoryManager = () => {
+  const FINGGU_el = document.getElementById('finggu-category-manager');
+  if (!FINGGU_el) return;
+
+  const FINGGU_cats = fingguFn_getCategories();
+
+  if (!FINGGU_cats.length) {
+    FINGGU_el.innerHTML = '<div style="color:var(--finggu-muted);font-size:13px">No categories yet.</div>';
+    return;
+  }
+
+  FINGGU_el.innerHTML = FINGGU_cats.map(c => {
+    const FINGGU_isDefault = FINGGU_DEFAULT_CATEGORIES.find(d => d.id === c.id);
+    return `
+      <div class="finggu-cat-manage-row">
+        <span class="finggu-cat-row-icon">${c.icon}</span>
+        <span class="finggu-cat-row-label">${c.label}</span>
+        <span class="finggu-cat-row-color" style="background:${c.color}"></span>
+        <span style="font-size:10px;color:var(--finggu-muted);padding:2px 6px;background:var(--finggu-elevated);border-radius:4px">
+          ${c.type || 'expense'}
+        </span>
+        <button class="finggu-cat-edit-btn" onclick="fingguFn_openEditCategory('${c.id}')">✏️ Edit</button>
+        <button class="finggu-cat-del-btn" onclick="fingguFn_deleteCategory('${c.id}', ${!!FINGGU_isDefault})" title="${FINGGU_isDefault ? 'Hide default' : 'Delete'}">
+          ${FINGGU_isDefault ? '🙈 Hide' : '🗑️'}
+        </button>
+      </div>`;
+  }).join('');
+};
+
+// ── Open Add Category modal ───────────────────────────────────────────────────
+const fingguFn_openAddCategoryModal = () => {
+  document.getElementById('finggu-addcat-title').textContent = 'Add Category';
+  document.getElementById('finggu-editcat-id').value = '';
+  document.getElementById('finggu-cat-name').value   = '';
+  document.getElementById('finggu-cat-icon').value   = '';
+  document.getElementById('finggu-cat-color').value  = '#f78166';
+  document.getElementById('finggu-cat-type').value   = 'expense';
+  fingguFn_renderEmojiPicker('');
+  fingguFn_renderColorPicker('#f78166');
+  fingguFn_openModal('addcat');
+};
+
+// ── Open Edit Category modal ──────────────────────────────────────────────────
+const fingguFn_openEditCategory = (id) => {
+  const FINGGU_cat = fingguFn_getCategories().find(c => c.id === id);
+  if (!FINGGU_cat) return;
+
+  document.getElementById('finggu-addcat-title').textContent = 'Edit Category';
+  document.getElementById('finggu-editcat-id').value = id;
+  document.getElementById('finggu-cat-name').value   = FINGGU_cat.label;
+  document.getElementById('finggu-cat-icon').value   = FINGGU_cat.icon;
+  document.getElementById('finggu-cat-color').value  = FINGGU_cat.color;
+  document.getElementById('finggu-cat-type').value   = FINGGU_cat.type || 'expense';
+  fingguFn_renderEmojiPicker(FINGGU_cat.icon);
+  fingguFn_renderColorPicker(FINGGU_cat.color);
+  fingguFn_openModal('addcat');
+};
+
+// ── Render emoji picker ───────────────────────────────────────────────────────
+const fingguFn_renderEmojiPicker = (selected) => {
+  const FINGGU_el = document.getElementById('finggu-emoji-picker');
+  if (!FINGGU_el) return;
+  FINGGU_el.innerHTML = FINGGU_EMOJI_PALETTE.map(e => `
+    <span class="finggu-emoji-opt ${e === selected ? 'selected' : ''}"
+          onclick="fingguFn_selectEmoji('${e}', this)">${e}</span>
+  `).join('');
+};
+
+const fingguFn_selectEmoji = (emoji, el) => {
+  document.querySelectorAll('.finggu-emoji-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('finggu-cat-icon').value = emoji;
+};
+
+// ── Render color picker ───────────────────────────────────────────────────────
+const fingguFn_renderColorPicker = (selected) => {
+  const FINGGU_el = document.getElementById('finggu-color-picker');
+  if (!FINGGU_el) return;
+  FINGGU_el.innerHTML = FINGGU_COLOR_PALETTE.map(c => `
+    <div class="finggu-color-swatch ${c === selected ? 'selected' : ''}"
+         style="background:${c}"
+         onclick="fingguFn_selectColor('${c}', this)"></div>
+  `).join('');
+};
+
+const fingguFn_selectColor = (color, el) => {
+  document.querySelectorAll('.finggu-color-swatch').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('finggu-cat-color').value = color;
+};
+
+// ── Save Category (add or edit) ───────────────────────────────────────────────
+const fingguFn_saveCategory = () => {
+  const FINGGU_editId = document.getElementById('finggu-editcat-id').value;
+  const FINGGU_name   = document.getElementById('finggu-cat-name').value.trim();
+  const FINGGU_icon   = document.getElementById('finggu-cat-icon').value.trim() || '🔖';
+  const FINGGU_color  = document.getElementById('finggu-cat-color').value || '#7d8590';
+  const FINGGU_type   = document.getElementById('finggu-cat-type').value;
+
+  if (!FINGGU_name) { fingguFn_toast('Enter a category name', 'error'); return; }
+
+  if (!FINGGU_state.customCategories) FINGGU_state.customCategories = [];
+
+  if (FINGGU_editId) {
+    // Editing — update in customCategories if custom, or add override if default
+    const FINGGU_customIdx = FINGGU_state.customCategories.findIndex(c => c.id === FINGGU_editId);
+    const FINGGU_updated   = { id: FINGGU_editId, label: FINGGU_name, icon: FINGGU_icon, color: FINGGU_color, type: FINGGU_type };
+
+    if (FINGGU_customIdx >= 0) {
+      FINGGU_state.customCategories[FINGGU_customIdx] = FINGGU_updated;
+    } else {
+      // Was a default — add edited version to customCategories with same id
+      // First mark original as deleted
+      if (!FINGGU_state.deletedDefaultCats) FINGGU_state.deletedDefaultCats = [];
+      FINGGU_state.deletedDefaultCats.push(FINGGU_editId);
+      FINGGU_state.customCategories.push(FINGGU_updated);
+    }
+    fingguFn_toast('Category updated!');
+  } else {
+    // Adding new
+    const FINGGU_newId = 'cat_' + Date.now();
+    FINGGU_state.customCategories.push({
+      id: FINGGU_newId, label: FINGGU_name,
+      icon: FINGGU_icon, color: FINGGU_color, type: FINGGU_type
+    });
+    fingguFn_toast('Category added! 🎉');
+  }
+
+  fingguFn_save();
+  fingguFn_closeAllModals();
+  fingguFn_refreshCategories();
+  fingguFn_renderCategoryManager();
+  fingguFn_renderCatPicker();
+};
+
+// ── Delete / Hide Category ────────────────────────────────────────────────────
+const fingguFn_deleteCategory = (id, isDefault) => {
+  if (!confirm(isDefault
+    ? `Hide "${id}" category? Your existing expenses won't be affected.`
+    : `Delete this category? Your existing expenses won't be affected.`)) return;
+
+  if (isDefault) {
+    if (!FINGGU_state.deletedDefaultCats) FINGGU_state.deletedDefaultCats = [];
+    if (!FINGGU_state.deletedDefaultCats.includes(id)) FINGGU_state.deletedDefaultCats.push(id);
+  } else {
+    FINGGU_state.customCategories = (FINGGU_state.customCategories || []).filter(c => c.id !== id);
+  }
+
+  fingguFn_save();
+  fingguFn_refreshCategories();
+  fingguFn_renderCategoryManager();
+  fingguFn_renderCatPicker();
+  fingguFn_toast('Category removed');
+};
+
+// ── Income setting ────────────────────────────────────────────────────────────
+const fingguFn_saveIncomeSetting = () => {
+  const FINGGU_val = parseFloat(document.getElementById('finggu-setting-income').value);
+  if (FINGGU_val > 0) {
+    FINGGU_state.monthlyIncome = FINGGU_val;
+    fingguFn_save();
+    fingguFn_toast('Income saved!');
+  } else {
+    fingguFn_toast('Enter a valid amount', 'error');
+  }
+};
+
+// ── Reminder days setting ─────────────────────────────────────────────────────
+const fingguFn_setReminderDays = (days) => {
+  FINGGU_state.reminderDays = days;
+  fingguFn_save();
+  fingguFn_renderSettings();
+  fingguFn_toast(`Reminder set to ${days} days before`);
+};
+
+// ── Export JSON ───────────────────────────────────────────────────────────────
+const fingguFn_exportData = () => {
+  const FINGGU_data = {
+    version:    '1.0.0',
+    exportedAt: new Date().toISOString(),
+    app:        'finggu-life',
+    data:       FINGGU_state
+  };
+  const FINGGU_blob = new Blob([JSON.stringify(FINGGU_data, null, 2)], { type: 'application/json' });
+  const FINGGU_url  = URL.createObjectURL(FINGGU_blob);
+  const FINGGU_a    = document.createElement('a');
+  FINGGU_a.href     = FINGGU_url;
+  FINGGU_a.download = `finggu-life-backup-${new Date().toISOString().slice(0,10)}.json`;
+  FINGGU_a.click();
+  URL.revokeObjectURL(FINGGU_url);
+  fingguFn_toast('Data exported!');
+};
+
+// ── Export CSV ────────────────────────────────────────────────────────────────
+const fingguFn_exportCSV = () => {
+  const FINGGU_rows = [['Date','Type','Category','Description','Amount','Member','Month']];
+
+  FINGGU_state.expenses.forEach(e => {
+    const FINGGU_cat = FINGGU_CAT_MAP[e.category] || { label: e.category };
+    const FINGGU_mem = FINGGU_state.members.find(m => m.id === e.member);
+    FINGGU_rows.push([
+      e.date, e.type, FINGGU_cat.label, e.desc,
+      e.amount, FINGGU_mem?.name || 'Me', e.month
+    ]);
+  });
+
+  const FINGGU_csv  = FINGGU_rows.map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const FINGGU_blob = new Blob([FINGGU_csv], { type: 'text/csv;charset=utf-8;' });
+  const FINGGU_url  = URL.createObjectURL(FINGGU_blob);
+  const FINGGU_a    = document.createElement('a');
+  FINGGU_a.href     = FINGGU_url;
+  FINGGU_a.download = `finggu-life-expenses-${new Date().toISOString().slice(0,10)}.csv`;
+  FINGGU_a.click();
+  URL.revokeObjectURL(FINGGU_url);
+  fingguFn_toast('CSV exported!');
+};
+
+// ── Import JSON ───────────────────────────────────────────────────────────────
+const fingguFn_importData = (event) => {
+  const FINGGU_file = event.target.files[0];
+  if (!FINGGU_file) return;
+
+  const FINGGU_reader = new FileReader();
+  FINGGU_reader.onload = (e) => {
+    try {
+      const FINGGU_parsed = JSON.parse(e.target.result);
+      const FINGGU_data   = FINGGU_parsed.data || FINGGU_parsed;
+
+      if (!FINGGU_data.expenses && !FINGGU_data.emis && !FINGGU_data.bills) {
+        fingguFn_toast('Invalid file format', 'error');
+        return;
+      }
+
+      if (!confirm('This will replace ALL your current data. Continue?')) return;
+
+      // Merge with current state shape
+      const FINGGU_newState = { ...FINGGU_state, ...FINGGU_data };
+      Object.assign(FINGGU_state, FINGGU_newState);
+
+      fingguFn_save();
+      fingguFn_refreshCategories();
+      fingguFn_renderAll();
+      fingguFn_renderSettings();
+      fingguFn_toast('Data imported successfully!');
+    } catch (err) {
+      fingguFn_toast('Could not read file: ' + err.message, 'error');
+    }
+  };
+  FINGGU_reader.readAsText(FINGGU_file);
+  event.target.value = '';
+};
+
+// ── Clear month data ──────────────────────────────────────────────────────────
+const fingguFn_clearMonthData = () => {
+  const FINGGU_month = FINGGU_state.activeMonth;
+  if (!confirm(`Delete all expenses for ${FINGGU_month}? This cannot be undone.`)) return;
+  FINGGU_state.expenses = FINGGU_state.expenses.filter(e => e.month !== FINGGU_month);
+  fingguFn_save();
+  fingguFn_renderAll();
+  fingguFn_toast(`${FINGGU_month} data cleared`);
+};
+
+// ── Reset all data ────────────────────────────────────────────────────────────
+const fingguFn_clearAllData = () => {
+  if (!confirm('Delete ALL data? This cannot be undone!')) return;
+  if (!confirm('Are you absolutely sure? Type OK in your mind and click OK.')) return;
+
+  FINGGU_state.expenses    = [];
+  FINGGU_state.emis        = [];
+  FINGGU_state.bills       = [];
+  FINGGU_state.goals       = [];
+  FINGGU_state.members     = [{ id:'default', name:'Me', icon:'👤', budget:30000 }];
+  FINGGU_state.customCategories    = [];
+  FINGGU_state.deletedDefaultCats  = [];
+  FINGGU_state.monthlyIncome       = 0;
+
+  fingguFn_save();
+  fingguFn_refreshCategories();
+  fingguFn_renderAll();
+  fingguFn_renderSettings();
+  fingguFn_toast('All data reset');
 };
 
 fingguFn_init();
