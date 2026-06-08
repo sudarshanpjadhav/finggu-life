@@ -490,6 +490,29 @@ body{
   cursor:pointer;text-decoration:underline;
 }
 
+
+/* ── Supabase Setup Guide ─────────────────────────────────────── */
+.finggu-guide-step{
+  display:flex;gap:12px;padding:10px 0;
+  border-bottom:1px solid var(--finggu-border);
+}
+.finggu-guide-step:last-child{border-bottom:none}
+.finggu-guide-step-num{
+  width:24px;height:24px;border-radius:50%;
+  background:var(--finggu-accent2);color:#000;
+  font-size:12px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;
+}
+.finggu-guide-step-title{font-weight:700;font-size:13px;margin-bottom:3px}
+.finggu-guide-step-body{font-size:12px;color:var(--finggu-muted);line-height:1.6}
+.finggu-guide-link{color:var(--finggu-accent2);text-decoration:none}
+.finggu-guide-link:hover{text-decoration:underline}
+.finggu-code{
+  background:var(--finggu-card);padding:1px 6px;border-radius:4px;
+  font-family:monospace;font-size:11px;color:var(--finggu-orange);
+}
+
 </style>
 </head>
 <body>
@@ -676,6 +699,154 @@ body{
         <button class="finggu-btn finggu-btn-danger finggu-btn-sm" onclick="fingguFn_clearMonthData()">Clear This Month</button>
         <button class="finggu-btn finggu-btn-danger finggu-btn-sm" onclick="fingguFn_clearAllData()">Reset All Data</button>
       </div>
+    </div>
+
+    <div class="finggu-settings-card" id="finggu-supabase-card" style="border-color:rgba(121,192,255,.3)">
+
+      <!-- Header row -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <span style="font-size:22px">☁️</span>
+        <div>
+          <div class="finggu-settings-card-title" style="color:var(--finggu-accent2)">Cloud Sync — Supabase</div>
+          <div class="finggu-settings-card-sub">Sync your data across all devices. Free forever.</div>
+        </div>
+        <div id="finggu-supa-status-badge" style="margin-left:auto;font-size:11px;padding:3px 8px;border-radius:99px;font-weight:700"></div>
+      </div>
+
+      <!-- Status row -->
+      <div id="finggu-supa-connected-info" style="display:none;background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.2);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="color:var(--finggu-green);font-size:16px">✅</span>
+          <div>
+            <div style="font-weight:600;color:var(--finggu-green)">Connected to Supabase</div>
+            <div style="color:var(--finggu-muted);font-size:12px;margin-top:2px" id="finggu-supa-project-hint"></div>
+          </div>
+          <button onclick="fingguFn_clearSupabaseConfig()" style="margin-left:auto;background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.2);color:var(--finggu-red);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit">Disconnect</button>
+        </div>
+      </div>
+
+      <!-- Setup form (shown when not configured) -->
+      <div id="finggu-supa-setup-form">
+
+        <!-- Step-by-step guide toggle -->
+        <button class="finggu-btn finggu-btn-ghost finggu-btn-sm" style="margin-bottom:14px;font-size:12px"
+          onclick="fingguFn_toggleSupaGuide()">
+          📖 How to get my Supabase URL & Key?
+        </button>
+
+        <!-- Collapsible step-by-step guide -->
+        <div id="finggu-supa-guide" style="display:none;background:var(--finggu-elevated);border-radius:10px;padding:16px;margin-bottom:16px;font-size:13px;line-height:1.7">
+
+          <div style="font-weight:700;font-size:14px;margin-bottom:12px;color:var(--finggu-accent2)">🚀 5-minute Setup Guide</div>
+
+          <div class="finggu-guide-step">
+            <div class="finggu-guide-step-num">1</div>
+            <div>
+              <div class="finggu-guide-step-title">Create a free Supabase account</div>
+              <div class="finggu-guide-step-body">Go to <a href="https://supabase.com" target="_blank" class="finggu-guide-link">supabase.com</a> → click <strong>Start for free</strong> → sign up with Google or email (it's free).</div>
+            </div>
+          </div>
+
+          <div class="finggu-guide-step">
+            <div class="finggu-guide-step-num">2</div>
+            <div>
+              <div class="finggu-guide-step-title">Create a new project</div>
+              <div class="finggu-guide-step-body">Click <strong>New Project</strong> → name it <code class="finggu-code">finggu-life</code> → choose region <strong>South Asia (ap-south-1)</strong> → set a database password → click <strong>Create Project</strong>. Wait ~2 minutes.</div>
+            </div>
+          </div>
+
+          <div class="finggu-guide-step">
+            <div class="finggu-guide-step-num">3</div>
+            <div>
+              <div class="finggu-guide-step-title">Run the database setup script</div>
+              <div class="finggu-guide-step-body">In your Supabase dashboard → click <strong>SQL Editor</strong> (left sidebar) → click <strong>New Query</strong> → copy the schema SQL from <a href="https://github.com/sudarshanpjadhav/finggu-life/blob/main/supabase/schema.sql" target="_blank" class="finggu-guide-link">this file on GitHub</a> → paste it → click <strong>Run</strong>.</div>
+            </div>
+          </div>
+
+          <div class="finggu-guide-step">
+            <div class="finggu-guide-step-num">4</div>
+            <div>
+              <div class="finggu-guide-step-title">Get your Project URL and Anon Key</div>
+              <div class="finggu-guide-step-body">In Supabase dashboard → click <strong>Settings</strong> (⚙️ icon, left sidebar) → click <strong>API</strong> → copy the two values shown below:</div>
+              <div style="margin-top:8px;background:var(--finggu-card);border-radius:6px;padding:10px;font-family:monospace;font-size:12px">
+                <div style="color:var(--finggu-muted);margin-bottom:4px">Project URL:</div>
+                <div style="color:var(--finggu-accent2)">https://xxxxxxxxxxxx.supabase.co</div>
+                <div style="color:var(--finggu-muted);margin:8px 0 4px">Anon public key:</div>
+                <div style="color:var(--finggu-green);word-break:break-all">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="finggu-guide-step">
+            <div class="finggu-guide-step-num">5</div>
+            <div>
+              <div class="finggu-guide-step-title">Add Redirect URL in Supabase</div>
+              <div class="finggu-guide-step-body">In Supabase → <strong>Authentication</strong> → <strong>URL Configuration</strong> → add your app URL to <strong>Redirect URLs</strong>:<br>
+              <code class="finggu-code">https://sudarshanpjadhav.github.io/finggu-life</code></div>
+            </div>
+          </div>
+
+          <div class="finggu-guide-step" style="border-bottom:none">
+            <div class="finggu-guide-step-num">6</div>
+            <div>
+              <div class="finggu-guide-step-title">Paste both values below and click Save</div>
+              <div class="finggu-guide-step-body">That's it! Your data will sync automatically across all your devices. 🎉</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- URL input -->
+        <div class="finggu-form-group">
+          <label class="finggu-form-label">
+            Project URL
+            <span style="color:var(--finggu-muted);font-weight:400;text-transform:none;letter-spacing:0"> — from Supabase → Settings → API</span>
+          </label>
+          <input class="finggu-input" type="url" id="finggu-supa-url-input"
+            placeholder="https://xxxxxxxxxxxx.supabase.co"
+            style="font-family:monospace;font-size:13px">
+          <div style="font-size:11px;color:var(--finggu-muted);margin-top:4px">
+            Starts with <code style="background:var(--finggu-elevated);padding:1px 5px;border-radius:3px">https://</code> and ends with <code style="background:var(--finggu-elevated);padding:1px 5px;border-radius:3px">.supabase.co</code>
+          </div>
+        </div>
+
+        <!-- Anon Key input -->
+        <div class="finggu-form-group" style="margin-bottom:16px">
+          <label class="finggu-form-label">
+            Anon Public Key
+            <span style="color:var(--finggu-muted);font-weight:400;text-transform:none;letter-spacing:0"> — from Supabase → Settings → API</span>
+          </label>
+          <div style="position:relative">
+            <input class="finggu-input" type="password" id="finggu-supa-key-input"
+              placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              style="font-family:monospace;font-size:12px;padding-right:44px">
+            <button onclick="fingguFn_toggleKeyVisibility()"
+              style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:14px;color:var(--finggu-muted)"
+              id="finggu-key-toggle-btn" title="Show/hide key">👁️</button>
+          </div>
+          <div style="font-size:11px;color:var(--finggu-muted);margin-top:4px">
+            Long string starting with <code style="background:var(--finggu-elevated);padding:1px 5px;border-radius:3px">eyJ</code> — this is safe to use in browser apps
+          </div>
+        </div>
+
+        <!-- Test connection result -->
+        <div id="finggu-supa-test-result" style="display:none;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px"></div>
+
+        <!-- Action buttons -->
+        <div style="display:flex;gap:10px">
+          <button class="finggu-btn finggu-btn-ghost finggu-btn-sm" onclick="fingguFn_testSupabaseConnection()" id="finggu-supa-test-btn">
+            🔍 Test Connection
+          </button>
+          <button class="finggu-btn finggu-btn-primary" onclick="fingguFn_saveSupabaseConfig()" style="flex:1;justify-content:center">
+            ☁️ Save & Connect
+          </button>
+        </div>
+
+        <div style="font-size:11px;color:var(--finggu-muted);margin-top:10px;text-align:center">
+          🔒 Your keys are stored only on your device (localStorage). Never shared with anyone.
+        </div>
+
+      </div><!-- end setup form -->
     </div>
 
     <div class="finggu-settings-card" style="text-align:center;border-style:dashed">
@@ -1922,6 +2093,9 @@ const fingguFn_renderSettings = () => {
 
   // Category manager
   fingguFn_renderCategoryManager();
+
+  // Supabase config card
+  fingguFn_renderSupabaseCard();
 };
 
 // ── Render the manage-categories list ─────────────────────────────────────────
@@ -2229,15 +2403,19 @@ const FINGGU_SYNC_DEBOUNCE_MS = 2000; // auto-sync 2s after last change
 
 // ── fingguFn_initSupabase — called on app init ────────────────────────────────
 const fingguFn_initSupabase = async () => {
+  // Load URL/Key from localStorage (set by user in Settings)
+  const FINGGU_savedUrl = localStorage.getItem('finggu_supa_url') || FINGGU_SUPABASE_URL;
+  const FINGGU_savedKey = localStorage.getItem('finggu_supa_key') || FINGGU_SUPABASE_KEY;
+
   // If no config set yet, show skip option
-  if (FINGGU_SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+  if (!FINGGU_savedUrl || FINGGU_savedUrl === 'YOUR_SUPABASE_URL') {
     console.log('[finggu-sync] Supabase not configured — running in local-only mode');
-    fingguFn_setSyncStatus('offline', 'Local mode — data on this device only');
+    fingguFn_setSyncStatus('offline', 'Local mode — configure Supabase in Settings to sync');
     return;
   }
 
   try {
-    FINGGU_supabase = supabase.createClient(FINGGU_SUPABASE_URL, FINGGU_SUPABASE_KEY);
+    FINGGU_supabase = supabase.createClient(FINGGU_savedUrl, FINGGU_savedKey);
 
     // Check for existing session (magic link callback)
     const { data: { session } } = await FINGGU_supabase.auth.getSession();
@@ -2611,6 +2789,268 @@ window.addEventListener('online', async () => {
 window.addEventListener('offline', () => {
   fingguFn_setSyncStatus('offline', 'Offline — changes saved locally');
 });
+
+
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  finggu-life — Supabase Settings Panel JS                   ║
+// ║  Save URL/Key in-app, test connection, guide toggle         ║
+// ╚══════════════════════════════════════════════════════════════╝
+
+// ── fingguFn_renderSupabaseCard — refresh card state ──────────────────────────
+const fingguFn_renderSupabaseCard = () => {
+  const FINGGU_url = localStorage.getItem('finggu_supa_url') || '';
+  const FINGGU_key = localStorage.getItem('finggu_supa_key') || '';
+  const FINGGU_isConfigured = FINGGU_url && FINGGU_key &&
+    FINGGU_url !== 'YOUR_SUPABASE_URL' && FINGGU_key !== 'YOUR_SUPABASE_ANON_KEY';
+
+  const FINGGU_badge    = document.getElementById('finggu-supa-status-badge');
+  const FINGGU_connInfo = document.getElementById('finggu-supa-connected-info');
+  const FINGGU_form     = document.getElementById('finggu-supa-setup-form');
+  const FINGGU_hint     = document.getElementById('finggu-supa-project-hint');
+
+  if (!FINGGU_badge) return;
+
+  if (FINGGU_isConfigured) {
+    // Show connected state
+    FINGGU_badge.textContent    = '● Connected';
+    FINGGU_badge.style.cssText  = 'margin-left:auto;font-size:11px;padding:3px 8px;border-radius:99px;font-weight:700;background:rgba(63,185,80,.15);color:var(--finggu-green)';
+    FINGGU_connInfo.style.display = 'block';
+    FINGGU_form.style.display     = 'none';
+
+    // Show project URL hint (domain only, not full key)
+    try {
+      const FINGGU_domain = new URL(FINGGU_url).hostname;
+      FINGGU_hint.textContent = `Project: ${FINGGU_domain}`;
+    } catch(e) {
+      FINGGU_hint.textContent = FINGGU_url.slice(0, 40) + '...';
+    }
+  } else {
+    // Show setup form
+    FINGGU_badge.textContent    = '○ Not connected';
+    FINGGU_badge.style.cssText  = 'margin-left:auto;font-size:11px;padding:3px 8px;border-radius:99px;font-weight:700;background:rgba(125,133,144,.15);color:var(--finggu-muted)';
+    FINGGU_connInfo.style.display = 'none';
+    FINGGU_form.style.display     = 'block';
+
+    // Pre-fill inputs if partially saved
+    const FINGGU_urlInput = document.getElementById('finggu-supa-url-input');
+    const FINGGU_keyInput = document.getElementById('finggu-supa-key-input');
+    if (FINGGU_urlInput && FINGGU_url) FINGGU_urlInput.value = FINGGU_url;
+    if (FINGGU_keyInput && FINGGU_key) FINGGU_keyInput.value = FINGGU_key;
+  }
+};
+
+// ── Guide toggle ──────────────────────────────────────────────────────────────
+const fingguFn_toggleSupaGuide = () => {
+  const FINGGU_guide = document.getElementById('finggu-supa-guide');
+  const FINGGU_btn   = FINGGU_guide.previousElementSibling;
+  const FINGGU_isHidden = FINGGU_guide.style.display === 'none';
+
+  FINGGU_guide.style.display = FINGGU_isHidden ? 'block' : 'none';
+  FINGGU_btn.textContent = FINGGU_isHidden
+    ? '📖 Hide instructions'
+    : '📖 How to get my Supabase URL & Key?';
+
+  // Smooth scroll to guide when opening
+  if (FINGGU_isHidden) {
+    setTimeout(() => FINGGU_guide.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  }
+};
+
+// ── Show/hide key ─────────────────────────────────────────────────────────────
+const fingguFn_toggleKeyVisibility = () => {
+  const FINGGU_input = document.getElementById('finggu-supa-key-input');
+  const FINGGU_btn   = document.getElementById('finggu-key-toggle-btn');
+  if (FINGGU_input.type === 'password') {
+    FINGGU_input.type   = 'text';
+    FINGGU_btn.textContent = '🙈';
+  } else {
+    FINGGU_input.type   = 'password';
+    FINGGU_btn.textContent = '👁️';
+  }
+};
+
+// ── Validate inputs ───────────────────────────────────────────────────────────
+const fingguFn_validateSupaInputs = () => {
+  const FINGGU_url = document.getElementById('finggu-supa-url-input')?.value.trim();
+  const FINGGU_key = document.getElementById('finggu-supa-key-input')?.value.trim();
+
+  if (!FINGGU_url) {
+    fingguFn_showTestResult('error', '❌ Project URL is required');
+    return null;
+  }
+  if (!FINGGU_url.startsWith('https://') || !FINGGU_url.includes('.supabase.co')) {
+    fingguFn_showTestResult('error', '❌ URL must start with https:// and end with .supabase.co');
+    return null;
+  }
+  if (!FINGGU_key) {
+    fingguFn_showTestResult('error', '❌ Anon key is required');
+    return null;
+  }
+  if (!FINGGU_key.startsWith('eyJ')) {
+    fingguFn_showTestResult('error', '❌ Anon key should start with "eyJ" — make sure you copied the right key');
+    return null;
+  }
+  if (FINGGU_key.length < 100) {
+    fingguFn_showTestResult('error', '❌ Anon key seems too short — copy the full key from Supabase');
+    return null;
+  }
+  return { url: FINGGU_url, key: FINGGU_key };
+};
+
+// ── Show test result ──────────────────────────────────────────────────────────
+const fingguFn_showTestResult = (type, message) => {
+  const FINGGU_el = document.getElementById('finggu-supa-test-result');
+  if (!FINGGU_el) return;
+
+  const FINGGU_styles = {
+    success: 'background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);color:var(--finggu-green)',
+    error:   'background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);color:var(--finggu-red)',
+    info:    'background:rgba(121,192,255,.1);border:1px solid rgba(121,192,255,.3);color:var(--finggu-accent2)',
+  };
+
+  FINGGU_el.style.cssText = `display:block;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px;${FINGGU_styles[type] || FINGGU_styles.info}`;
+  FINGGU_el.innerHTML = message;
+};
+
+// ── Test connection ───────────────────────────────────────────────────────────
+const fingguFn_testSupabaseConnection = async () => {
+  const FINGGU_vals = fingguFn_validateSupaInputs();
+  if (!FINGGU_vals) return;
+
+  const FINGGU_btn = document.getElementById('finggu-supa-test-btn');
+  FINGGU_btn.textContent = '⏳ Testing...';
+  FINGGU_btn.disabled    = true;
+  fingguFn_showTestResult('info', '⏳ Connecting to Supabase...');
+
+  try {
+    // Try creating a client and pinging the auth endpoint
+    const FINGGU_testClient = supabase.createClient(FINGGU_vals.url, FINGGU_vals.key);
+
+    // Test by checking auth (doesn't need a logged-in user)
+    const { data, error } = await FINGGU_testClient.auth.getSession();
+
+    if (error && error.message.includes('fetch')) {
+      throw new Error('Cannot reach Supabase. Check your Project URL.');
+    }
+
+    // If we get here without a network error, connection works
+    fingguFn_showTestResult('success',
+      `✅ Connection successful! Your Supabase project is reachable.<br>
+       <span style="font-size:11px;opacity:.8;margin-top:4px;display:block">
+         Project: ${new URL(FINGGU_vals.url).hostname}
+       </span>`
+    );
+
+    FINGGU_btn.textContent = '✅ Connected';
+
+  } catch (err) {
+    const FINGGU_msg = err.message.includes('fetch')
+      ? 'Cannot reach Supabase — check your Project URL is correct'
+      : err.message.includes('invalid')
+      ? 'Invalid API key — make sure you copied the Anon key (not service_role key)'
+      : err.message;
+
+    fingguFn_showTestResult('error', `❌ ${FINGGU_msg}`);
+    FINGGU_btn.textContent = '🔍 Test Connection';
+  }
+
+  FINGGU_btn.disabled = false;
+};
+
+// ── Save config to localStorage + reinit Supabase ────────────────────────────
+const fingguFn_saveSupabaseConfig = async () => {
+  const FINGGU_vals = fingguFn_validateSupaInputs();
+  if (!FINGGU_vals) return;
+
+  const FINGGU_saveBtn = document.querySelector('#finggu-supabase-card .finggu-btn-primary');
+  FINGGU_saveBtn.textContent = '⏳ Connecting...';
+  FINGGU_saveBtn.disabled    = true;
+
+  try {
+    // Quick connection test first
+    const FINGGU_testClient = supabase.createClient(FINGGU_vals.url, FINGGU_vals.key);
+    const { error } = await FINGGU_testClient.auth.getSession();
+
+    if (error?.message?.includes('fetch')) {
+      throw new Error('Cannot reach Supabase — check the Project URL');
+    }
+
+    // Save to localStorage
+    localStorage.setItem('finggu_supa_url', FINGGU_vals.url);
+    localStorage.setItem('finggu_supa_key', FINGGU_vals.key);
+
+    // Update global constants and reinitialize
+    fingguFn_showTestResult('success',
+      '✅ Saved! Reinitializing sync...'
+    );
+
+    // Reinitialize Supabase with new credentials
+    FINGGU_supabase    = supabase.createClient(FINGGU_vals.url, FINGGU_vals.key);
+    FINGGU_currentUser = null;
+
+    // Check for existing session
+    const { data: { session } } = await FINGGU_supabase.auth.getSession();
+    if (session?.user) {
+      FINGGU_currentUser = session.user;
+      await fingguFn_onSignedIn(session.user);
+      fingguFn_hideAuthScreen();
+    } else {
+      // Show auth screen to log in
+      localStorage.removeItem('finggu_auth_skipped');
+      setTimeout(() => {
+        fingguFn_hideSupaTestResult();
+        fingguFn_renderSupabaseCard();
+        fingguFn_showAuthScreen();
+      }, 800);
+    }
+
+    fingguFn_toast('☁️ Supabase connected! Sign in to start syncing.');
+    fingguFn_renderSupabaseCard();
+
+    // Re-listen for auth changes with new client
+    FINGGU_supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        FINGGU_currentUser = session.user;
+        fingguFn_onSignedIn(session.user);
+        fingguFn_hideAuthScreen();
+      }
+      if (event === 'SIGNED_OUT') {
+        FINGGU_currentUser = null;
+        fingguFn_setSyncStatus('offline', 'Signed out');
+      }
+    });
+
+  } catch (err) {
+    fingguFn_showTestResult('error', `❌ ${err.message}`);
+  }
+
+  FINGGU_saveBtn.textContent = '☁️ Save & Connect';
+  FINGGU_saveBtn.disabled    = false;
+};
+
+const fingguFn_hideSupaTestResult = () => {
+  const FINGGU_el = document.getElementById('finggu-supa-test-result');
+  if (FINGGU_el) FINGGU_el.style.display = 'none';
+};
+
+// ── Disconnect / clear config ─────────────────────────────────────────────────
+const fingguFn_clearSupabaseConfig = async () => {
+  if (!confirm('Disconnect from Supabase? Your local data stays. You can reconnect anytime.')) return;
+
+  if (FINGGU_supabase) await FINGGU_supabase.auth.signOut();
+
+  localStorage.removeItem('finggu_supa_url');
+  localStorage.removeItem('finggu_supa_key');
+  localStorage.removeItem('finggu_auth_skipped');
+
+  FINGGU_supabase    = null;
+  FINGGU_currentUser = null;
+
+  fingguFn_setSyncStatus('offline', 'Disconnected — local mode');
+  document.getElementById('finggu-auth-bar').style.display = 'none';
+  fingguFn_renderSupabaseCard();
+  fingguFn_toast('Disconnected from Supabase');
+};
 
 fingguFn_init();
 </script>
