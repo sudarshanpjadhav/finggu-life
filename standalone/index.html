@@ -6,6 +6,7 @@
 <meta name="description" content="finggu-life — Personal finance dashboard for India. Track expenses, EMIs, bills, savings goals and family budget. Works offline. No signup needed.">
 <meta name="theme-color" content="#0d1117">
 <title>finggu-life — आपका पैसा, आपका हिसाब</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -422,11 +423,127 @@ body{
 .finggu-emoji-opt.selected{border-color:var(--finggu-accent);background:rgba(247,129,102,.1)}
 .finggu-reminder-day-btn{transition:all .15s}
 .finggu-reminder-day-btn.active{background:var(--finggu-accent);color:#fff;border-color:var(--finggu-accent)}
+
+/* ── Auth / Sync UI ───────────────────────────────────────────── */
+.finggu-auth-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 16px;background:rgba(121,192,255,.07);
+  border-bottom:1px solid var(--finggu-border);
+  font-size:12px;
+}
+.finggu-auth-bar.synced{background:rgba(63,185,80,.07)}
+.finggu-auth-bar.error{background:rgba(248,81,73,.07)}
+.finggu-sync-dot{
+  width:7px;height:7px;border-radius:50%;flex-shrink:0;
+}
+.finggu-sync-dot.online{background:var(--finggu-green)}
+.finggu-sync-dot.offline{background:var(--finggu-yellow)}
+.finggu-sync-dot.syncing{
+  background:var(--finggu-accent2);
+  animation:fingguPulse 1s infinite;
+}
+.finggu-sync-dot.error{background:var(--finggu-red)}
+@keyframes fingguPulse{0%,100%{opacity:1}50%{opacity:.3}}
+.finggu-auth-info{flex:1;color:var(--finggu-muted)}
+.finggu-auth-info strong{color:var(--finggu-text)}
+.finggu-sync-btn{
+  background:var(--finggu-elevated);border:1px solid var(--finggu-border);
+  color:var(--finggu-text);border-radius:6px;padding:4px 10px;
+  font-size:11px;font-family:var(--finggu-font);cursor:pointer;
+}
+.finggu-sync-btn:hover{background:var(--finggu-card)}
+
+/* Auth modal */
+.finggu-auth-modal{
+  position:fixed;inset:0;background:var(--finggu-bg);
+  z-index:300;display:flex;align-items:center;justify-content:center;
+  padding:20px;
+}
+.finggu-auth-box{
+  background:var(--finggu-surface);border:1px solid var(--finggu-border);
+  border-radius:var(--finggu-radius-lg);padding:32px 28px;
+  width:100%;max-width:380px;text-align:center;
+}
+.finggu-auth-logo{font-size:40px;margin-bottom:8px}
+.finggu-auth-title{font-size:22px;font-weight:800;margin-bottom:4px}
+.finggu-auth-sub{font-size:13px;color:var(--finggu-muted);margin-bottom:24px}
+.finggu-auth-features{
+  display:flex;flex-direction:column;gap:8px;
+  margin-bottom:24px;text-align:left;
+}
+.finggu-auth-feature{
+  display:flex;align-items:center;gap:10px;
+  background:var(--finggu-elevated);border-radius:8px;padding:10px 12px;
+  font-size:13px;
+}
+.finggu-auth-or{
+  display:flex;align-items:center;gap:12px;
+  margin:16px 0;color:var(--finggu-muted);font-size:12px;
+}
+.finggu-auth-or::before,.finggu-auth-or::after{
+  content:'';flex:1;height:1px;background:var(--finggu-border);
+}
+.finggu-otp-sent{display:none}
+.finggu-otp-sent.show{display:block}
+.finggu-auth-skip{
+  margin-top:16px;font-size:12px;color:var(--finggu-muted);
+  cursor:pointer;text-decoration:underline;
+}
+
 </style>
 </head>
 <body>
 
 <!-- Header -->
+
+<!-- Auth / Sync Status Bar -->
+<div class="finggu-auth-bar" id="finggu-auth-bar" style="display:none">
+  <div class="finggu-sync-dot" id="finggu-sync-dot"></div>
+  <div class="finggu-auth-info" id="finggu-auth-info"></div>
+  <button class="finggu-sync-btn" onclick="fingguFn_manualSync()" id="finggu-sync-btn">↻ Sync</button>
+  <button class="finggu-sync-btn" onclick="fingguFn_signOut()" style="color:var(--finggu-muted)">Sign out</button>
+</div>
+
+<!-- Auth Screen (shown when not logged in) -->
+<div class="finggu-auth-modal" id="finggu-auth-screen" style="display:none">
+  <div class="finggu-auth-box">
+    <div class="finggu-auth-logo">₹</div>
+    <div class="finggu-auth-title">finggu-life</div>
+    <div class="finggu-auth-sub">आपका पैसा, आपका हिसाब<br>Sign in to sync across all your devices</div>
+
+    <div class="finggu-auth-features">
+      <div class="finggu-auth-feature">☁️ <span>Data synced across all devices</span></div>
+      <div class="finggu-auth-feature">🔒 <span>Only you can see your data</span></div>
+      <div class="finggu-auth-feature">📴 <span>Works offline too</span></div>
+    </div>
+
+    <!-- Email OTP login -->
+    <div id="finggu-auth-email-step">
+      <input class="finggu-input" type="email" id="finggu-auth-email"
+        placeholder="Enter your email" style="margin-bottom:10px;text-align:center">
+      <button class="finggu-btn finggu-btn-primary" style="width:100%;justify-content:center;padding:12px"
+        onclick="fingguFn_sendMagicLink()">
+        Send Magic Link →
+      </button>
+    </div>
+
+    <!-- OTP sent confirmation -->
+    <div class="finggu-otp-sent" id="finggu-auth-sent-step">
+      <div style="font-size:32px;margin-bottom:8px">📧</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px">Check your email!</div>
+      <div style="font-size:13px;color:var(--finggu-muted);margin-bottom:16px"
+           id="finggu-auth-sent-msg">We sent a magic link to your email</div>
+      <button class="finggu-btn finggu-btn-ghost" style="width:100%;justify-content:center"
+        onclick="fingguFn_backToEmail()">← Use different email</button>
+    </div>
+
+    <div class="finggu-auth-or">or</div>
+    <div class="finggu-auth-skip" onclick="fingguFn_skipAuth()">
+      Continue without account (data stays on this device only)
+    </div>
+  </div>
+</div>
+
 <header class="finggu-header">
   <div class="finggu-logo">
     <div class="finggu-logo-icon">₹</div>
@@ -950,6 +1067,7 @@ const FINGGU_CAT_MAP = Object.fromEntries(FINGGU_CATEGORIES.map(c => [c.id, c]))
 // ── Storage ───────────────────────────────────────────────────────────────────
 const fingguFn_save = () => {
   try { localStorage.setItem('finggu_life_v1', JSON.stringify(FINGGU_state)); } catch(e){}
+  fingguFn_scheduleSyncToCloud(); // auto-sync to Supabase after every change
 };
 const fingguFn_load = () => {
   try {
@@ -1143,6 +1261,7 @@ const fingguFn_clearExpenseForm = () => {
 const fingguFn_deleteExpense = (id) => {
   FINGGU_state.expenses = FINGGU_state.expenses.filter(e => e.id !== id);
   fingguFn_save();
+  fingguFn_cloudDelete('finggu_expenses', id);
   fingguFn_renderAll();
   fingguFn_toast('Deleted');
 };
@@ -1179,6 +1298,7 @@ const fingguFn_saveEMI = () => {
 const fingguFn_deleteEMI = (id) => {
   FINGGU_state.emis = FINGGU_state.emis.filter(e => e.id !== id);
   fingguFn_save();
+  fingguFn_cloudDelete('finggu_emis', id);
   fingguFn_renderAll();
 };
 
@@ -1212,7 +1332,9 @@ const fingguFn_toggleBillPaid = (id) => {
 
 const fingguFn_deleteBill = (id) => {
   FINGGU_state.bills = FINGGU_state.bills.filter(b => b.id !== id);
-  fingguFn_save(); fingguFn_renderBills();
+  fingguFn_save();
+  fingguFn_cloudDelete('finggu_bills', id);
+  fingguFn_renderBills();
 };
 
 // ── SAVE GOAL ─────────────────────────────────────────────────────────────────
@@ -1264,7 +1386,9 @@ const fingguFn_doAddMoney = () => {
 
 const fingguFn_deleteGoal = (id) => {
   FINGGU_state.goals = FINGGU_state.goals.filter(g => g.id !== id);
-  fingguFn_save(); fingguFn_renderSavings();
+  fingguFn_save();
+  fingguFn_cloudDelete('finggu_goals', id);
+  fingguFn_renderSavings();
 };
 
 // ── MEMBER ────────────────────────────────────────────────────────────────────
@@ -1712,6 +1836,9 @@ const fingguFn_init = () => {
   };
   fingguFn_updateBillBadge();
 
+  // Initialize Supabase cloud sync
+  fingguFn_initSupabase();
+
   console.log('%cfinggu-life loaded ✓ by Finggu (finggu.com)', 'color:#f78166;font-weight:bold;font-size:14px');
 };
 
@@ -2080,6 +2207,410 @@ const fingguFn_clearAllData = () => {
   fingguFn_renderSettings();
   fingguFn_toast('All data reset');
 };
+
+
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  finggu-life — Supabase Cloud Sync Engine                   ║
+// ║  Email OTP auth + auto-sync + offline-first                 ║
+// ╚══════════════════════════════════════════════════════════════╝
+
+// ── Supabase Config — replace with YOUR project values ───────────────────────
+// Get these from: Supabase Dashboard → Settings → API
+const FINGGU_SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const FINGGU_SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+// ── Sync state ────────────────────────────────────────────────────────────────
+let FINGGU_supabase      = null;
+let FINGGU_currentUser   = null;
+let FINGGU_syncTimer     = null;
+let FINGGU_syncPending   = false;
+let FINGGU_lastSyncedAt  = null;
+const FINGGU_SYNC_DEBOUNCE_MS = 2000; // auto-sync 2s after last change
+
+// ── fingguFn_initSupabase — called on app init ────────────────────────────────
+const fingguFn_initSupabase = async () => {
+  // If no config set yet, show skip option
+  if (FINGGU_SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+    console.log('[finggu-sync] Supabase not configured — running in local-only mode');
+    fingguFn_setSyncStatus('offline', 'Local mode — data on this device only');
+    return;
+  }
+
+  try {
+    FINGGU_supabase = supabase.createClient(FINGGU_SUPABASE_URL, FINGGU_SUPABASE_KEY);
+
+    // Check for existing session (magic link callback)
+    const { data: { session } } = await FINGGU_supabase.auth.getSession();
+
+    if (session?.user) {
+      FINGGU_currentUser = session.user;
+      fingguFn_onSignedIn(session.user);
+    } else {
+      // Check if user previously skipped auth
+      const FINGGU_skipped = localStorage.getItem('finggu_auth_skipped');
+      if (FINGGU_skipped) {
+        fingguFn_setSyncStatus('offline', 'Local mode — Sign in to sync');
+      } else {
+        fingguFn_showAuthScreen();
+      }
+    }
+
+    // Listen for auth state changes (magic link click)
+    FINGGU_supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        FINGGU_currentUser = session.user;
+        fingguFn_onSignedIn(session.user);
+        fingguFn_hideAuthScreen();
+      }
+      if (event === 'SIGNED_OUT') {
+        FINGGU_currentUser = null;
+        fingguFn_setSyncStatus('offline', 'Signed out');
+      }
+    });
+
+  } catch (err) {
+    console.error('[finggu-sync] Supabase init error:', err);
+    fingguFn_setSyncStatus('error', 'Sync unavailable — working offline');
+  }
+};
+
+// ── Auth UI ───────────────────────────────────────────────────────────────────
+const fingguFn_showAuthScreen = () => {
+  document.getElementById('finggu-auth-screen').style.display = 'flex';
+};
+
+const fingguFn_hideAuthScreen = () => {
+  document.getElementById('finggu-auth-screen').style.display = 'none';
+  document.getElementById('finggu-auth-bar').style.display    = 'flex';
+};
+
+const fingguFn_sendMagicLink = async () => {
+  const FINGGU_email = document.getElementById('finggu-auth-email').value.trim();
+  if (!FINGGU_email || !FINGGU_email.includes('@')) {
+    fingguFn_toast('Enter a valid email address', 'error'); return;
+  }
+
+  const FINGGU_btn = document.querySelector('#finggu-auth-email-step button');
+  FINGGU_btn.textContent = 'Sending...';
+  FINGGU_btn.disabled    = true;
+
+  try {
+    const { error } = await FINGGU_supabase.auth.signInWithOtp({
+      email: FINGGU_email,
+      options: {
+        emailRedirectTo: window.location.href,
+        shouldCreateUser: true,
+      }
+    });
+
+    if (error) throw error;
+
+    // Show sent confirmation
+    document.getElementById('finggu-auth-email-step').style.display = 'none';
+    document.getElementById('finggu-auth-sent-step').classList.add('show');
+    document.getElementById('finggu-auth-sent-msg').textContent =
+      `Magic link sent to ${FINGGU_email} — check your inbox (and spam folder)`;
+
+  } catch (err) {
+    FINGGU_btn.textContent = 'Send Magic Link →';
+    FINGGU_btn.disabled    = false;
+    fingguFn_toast('Error: ' + err.message, 'error');
+  }
+};
+
+const fingguFn_backToEmail = () => {
+  document.getElementById('finggu-auth-email-step').style.display = 'block';
+  document.getElementById('finggu-auth-sent-step').classList.remove('show');
+};
+
+const fingguFn_skipAuth = () => {
+  localStorage.setItem('finggu_auth_skipped', '1');
+  fingguFn_hideAuthScreen();
+  fingguFn_setSyncStatus('offline', 'Local mode — tap to sign in');
+};
+
+const fingguFn_signOut = async () => {
+  if (!confirm('Sign out? Your data will stay on this device.')) return;
+  if (FINGGU_supabase) await FINGGU_supabase.auth.signOut();
+  FINGGU_currentUser = null;
+  localStorage.removeItem('finggu_auth_skipped');
+  fingguFn_setSyncStatus('offline', 'Signed out');
+  document.getElementById('finggu-auth-bar').style.display = 'none';
+  fingguFn_showAuthScreen();
+};
+
+// ── Sync status bar ───────────────────────────────────────────────────────────
+const fingguFn_setSyncStatus = (status, message) => {
+  const FINGGU_bar  = document.getElementById('finggu-auth-bar');
+  const FINGGU_dot  = document.getElementById('finggu-sync-dot');
+  const FINGGU_info = document.getElementById('finggu-auth-info');
+  if (!FINGGU_bar) return;
+
+  FINGGU_bar.style.display = 'flex';
+  FINGGU_dot.className = `finggu-sync-dot ${status}`;
+
+  const FINGGU_statusIcons = {
+    online:  '☁️',
+    offline: '📴',
+    syncing: '↻',
+    error:   '⚠️'
+  };
+
+  FINGGU_info.innerHTML = `${FINGGU_statusIcons[status] || ''} ${message}`;
+
+  // Show/hide sync button only when logged in
+  const FINGGU_syncBtn = document.getElementById('finggu-sync-btn');
+  if (FINGGU_syncBtn) {
+    FINGGU_syncBtn.style.display = FINGGU_currentUser ? 'block' : 'none';
+  }
+};
+
+// ── On signed in: load cloud data + start sync ────────────────────────────────
+const fingguFn_onSignedIn = async (user) => {
+  fingguFn_setSyncStatus('syncing', `Syncing...`);
+
+  try {
+    await fingguFn_pullFromCloud();
+    fingguFn_renderAll();
+    fingguFn_setSyncStatus('online',
+      `Synced · <strong>${user.email}</strong>`);
+    FINGGU_lastSyncedAt = new Date();
+  } catch (err) {
+    console.error('[finggu-sync] Pull error:', err);
+    fingguFn_setSyncStatus('error', 'Sync failed — working offline');
+  }
+};
+
+// ── Pull all data from Supabase → local state ────────────────────────────────
+const fingguFn_pullFromCloud = async () => {
+  if (!FINGGU_supabase || !FINGGU_currentUser) return;
+
+  const FINGGU_uid = FINGGU_currentUser.id;
+
+  const [
+    FINGGU_expenses,
+    FINGGU_emis,
+    FINGGU_bills,
+    FINGGU_goals,
+    FINGGU_members,
+    FINGGU_cats,
+    FINGGU_profile
+  ] = await Promise.all([
+    FINGGU_supabase.from('finggu_expenses').select('*').eq('user_id', FINGGU_uid).order('date', { ascending: false }),
+    FINGGU_supabase.from('finggu_emis').select('*').eq('user_id', FINGGU_uid),
+    FINGGU_supabase.from('finggu_bills').select('*').eq('user_id', FINGGU_uid),
+    FINGGU_supabase.from('finggu_goals').select('*').eq('user_id', FINGGU_uid),
+    FINGGU_supabase.from('finggu_members').select('*').eq('user_id', FINGGU_uid).order('sort_order'),
+    FINGGU_supabase.from('finggu_categories').select('*').eq('user_id', FINGGU_uid),
+    FINGGU_supabase.from('finggu_profiles').select('*').eq('id', FINGGU_uid).single()
+  ]);
+
+  // Map cloud rows → local state format
+  if (FINGGU_expenses.data?.length) {
+    FINGGU_state.expenses = FINGGU_expenses.data.map(e => ({
+      id: e.id, type: e.type, amount: Number(e.amount),
+      desc: e.description, category: e.category,
+      date: e.date, month: e.month, member: e.member_id || 'default'
+    }));
+  }
+
+  if (FINGGU_emis.data?.length) {
+    FINGGU_state.emis = FINGGU_emis.data.map(e => ({
+      id: e.id, name: e.name, bank: e.bank,
+      amount: Number(e.amount), total: Number(e.total),
+      paid: Number(e.paid), due: e.due_day,
+      tenure: e.tenure, rate: Number(e.rate || 0),
+      startDate: e.start_date, active: e.active
+    }));
+  }
+
+  if (FINGGU_bills.data?.length) {
+    FINGGU_state.bills = FINGGU_bills.data.map(b => ({
+      id: b.id, name: b.name, amount: Number(b.amount),
+      due: b.due_day, icon: b.icon,
+      recurrence: b.recurrence, paid: b.paid
+    }));
+  }
+
+  if (FINGGU_goals.data?.length) {
+    FINGGU_state.goals = FINGGU_goals.data.map(g => ({
+      id: g.id, name: g.name, target: Number(g.target),
+      saved: Number(g.saved), deadline: g.deadline, emoji: g.emoji
+    }));
+  }
+
+  if (FINGGU_members.data?.length) {
+    FINGGU_state.members = FINGGU_members.data.map(m => ({
+      id: m.id, name: m.name, icon: m.icon, budget: Number(m.budget)
+    }));
+  }
+
+  if (FINGGU_cats.data?.length) {
+    FINGGU_state.customCategories   = FINGGU_cats.data.filter(c => !c.is_hidden).map(c => ({
+      id: c.id, label: c.label, icon: c.icon, color: c.color, type: c.type
+    }));
+    FINGGU_state.deletedDefaultCats = FINGGU_cats.data
+      .filter(c => c.is_hidden)
+      .map(c => c.id);
+  }
+
+  if (FINGGU_profile.data) {
+    FINGGU_state.monthlyIncome = Number(FINGGU_profile.data.monthly_income || 0);
+    FINGGU_state.reminderDays  = FINGGU_profile.data.reminder_days || 5;
+    if (FINGGU_profile.data.lang) FINGGU_state.lang = FINGGU_profile.data.lang;
+  }
+
+  fingguFn_save(); // persist pulled data to localStorage too
+  fingguFn_refreshCategories();
+};
+
+// ── Push all data from local state → Supabase ─────────────────────────────────
+const fingguFn_pushToCloud = async () => {
+  if (!FINGGU_supabase || !FINGGU_currentUser) return;
+
+  const FINGGU_uid = FINGGU_currentUser.id;
+  fingguFn_setSyncStatus('syncing', 'Syncing...');
+
+  try {
+    // Upsert expenses
+    if (FINGGU_state.expenses.length) {
+      const FINGGU_rows = FINGGU_state.expenses.map(e => ({
+        id: e.id, user_id: FINGGU_uid,
+        type: e.type, amount: e.amount,
+        description: e.desc, category: e.category,
+        date: e.date, month: e.month,
+        member_id: e.member || 'default'
+      }));
+      await FINGGU_supabase.from('finggu_expenses').upsert(FINGGU_rows, { onConflict: 'id' });
+    }
+
+    // Upsert EMIs
+    if (FINGGU_state.emis.length) {
+      const FINGGU_rows = FINGGU_state.emis.map(e => ({
+        id: e.id, user_id: FINGGU_uid,
+        name: e.name, bank: e.bank,
+        amount: e.amount, total: e.total, paid: e.paid,
+        due_day: e.due, tenure: e.tenure, rate: e.rate,
+        start_date: e.startDate, active: e.active
+      }));
+      await FINGGU_supabase.from('finggu_emis').upsert(FINGGU_rows, { onConflict: 'id' });
+    }
+
+    // Upsert Bills
+    if (FINGGU_state.bills.length) {
+      const FINGGU_rows = FINGGU_state.bills.map(b => ({
+        id: b.id, user_id: FINGGU_uid,
+        name: b.name, amount: b.amount,
+        due_day: b.due, icon: b.icon,
+        recurrence: b.recurrence, paid: b.paid
+      }));
+      await FINGGU_supabase.from('finggu_bills').upsert(FINGGU_rows, { onConflict: 'id' });
+    }
+
+    // Upsert Goals
+    if (FINGGU_state.goals.length) {
+      const FINGGU_rows = FINGGU_state.goals.map(g => ({
+        id: g.id, user_id: FINGGU_uid,
+        name: g.name, target: g.target,
+        saved: g.saved, deadline: g.deadline || null, emoji: g.emoji
+      }));
+      await FINGGU_supabase.from('finggu_goals').upsert(FINGGU_rows, { onConflict: 'id' });
+    }
+
+    // Upsert Members
+    const FINGGU_memberRows = FINGGU_state.members.map((m, i) => ({
+      id: m.id, user_id: FINGGU_uid,
+      name: m.name, icon: m.icon,
+      budget: m.budget, sort_order: i
+    }));
+    await FINGGU_supabase.from('finggu_members').upsert(FINGGU_memberRows, { onConflict: 'id' });
+
+    // Upsert Custom Categories
+    const FINGGU_customCats = (FINGGU_state.customCategories || []).map((c, i) => ({
+      id: c.id, user_id: FINGGU_uid,
+      label: c.label, icon: c.icon,
+      color: c.color, type: c.type,
+      is_hidden: false, sort_order: i
+    }));
+    // Add hidden default categories
+    const FINGGU_hiddenCats = (FINGGU_state.deletedDefaultCats || []).map(id => ({
+      id: `hidden_${id}`, user_id: FINGGU_uid,
+      label: id, icon: '🙈', color: '#7d8590',
+      type: 'both', is_hidden: true, sort_order: 999
+    }));
+    const FINGGU_allCatRows = [...FINGGU_customCats, ...FINGGU_hiddenCats];
+    if (FINGGU_allCatRows.length) {
+      await FINGGU_supabase.from('finggu_categories').upsert(FINGGU_allCatRows, { onConflict: 'id' });
+    }
+
+    // Update profile
+    await FINGGU_supabase.from('finggu_profiles').upsert({
+      id: FINGGU_uid,
+      email: FINGGU_currentUser.email,
+      monthly_income: FINGGU_state.monthlyIncome || 0,
+      reminder_days:  FINGGU_state.reminderDays  || 5,
+      lang:           FINGGU_state.lang          || 'en'
+    }, { onConflict: 'id' });
+
+    FINGGU_lastSyncedAt = new Date();
+    FINGGU_syncPending  = false;
+
+    const FINGGU_time = FINGGU_lastSyncedAt.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+    fingguFn_setSyncStatus('online',
+      `Synced at ${FINGGU_time} · <strong>${FINGGU_currentUser.email}</strong>`);
+
+    console.log('[finggu-sync] Push complete at', FINGGU_lastSyncedAt);
+
+  } catch (err) {
+    console.error('[finggu-sync] Push error:', err);
+    FINGGU_syncPending = true;
+    fingguFn_setSyncStatus('error', 'Sync failed — will retry');
+  }
+};
+
+// ── Manual sync button ────────────────────────────────────────────────────────
+const fingguFn_manualSync = async () => {
+  if (!FINGGU_currentUser) {
+    fingguFn_showAuthScreen(); return;
+  }
+  fingguFn_setSyncStatus('syncing', 'Syncing...');
+  await fingguFn_pushToCloud();
+  await fingguFn_pullFromCloud();
+  fingguFn_renderAll();
+  fingguFn_toast('Synced! ☁️');
+};
+
+// ── Auto-sync: debounced after every save ─────────────────────────────────────
+const fingguFn_scheduleSyncToCloud = () => {
+  if (!FINGGU_currentUser) return;
+  FINGGU_syncPending = true;
+  clearTimeout(FINGGU_SYNC_TIMER);
+  FINGGU_SYNC_TIMER = setTimeout(() => {
+    fingguFn_pushToCloud();
+  }, FINGGU_SYNC_DEBOUNCE_MS);
+};
+
+// ── Handle deleted items: remove from cloud ────────────────────────────────────
+const fingguFn_cloudDelete = async (table, id) => {
+  if (!FINGGU_supabase || !FINGGU_currentUser) return;
+  try {
+    await FINGGU_supabase.from(table).delete().eq('id', id).eq('user_id', FINGGU_currentUser.id);
+  } catch (err) {
+    console.warn('[finggu-sync] Delete error:', err);
+  }
+};
+
+// ── Online/offline detection ──────────────────────────────────────────────────
+window.addEventListener('online', async () => {
+  console.log('[finggu-sync] Back online');
+  if (FINGGU_syncPending && FINGGU_currentUser) {
+    await fingguFn_pushToCloud();
+  }
+});
+
+window.addEventListener('offline', () => {
+  fingguFn_setSyncStatus('offline', 'Offline — changes saved locally');
+});
 
 fingguFn_init();
 </script>
