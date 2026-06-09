@@ -560,6 +560,18 @@ body{
         onclick="fingguFn_backToEmail()">← Use different email</button>
     </div>
 
+    <div id="finggu-auth-no-config-msg" style="display:none;background:rgba(247,129,102,.1);border:1px solid rgba(247,129,102,.3);border-radius:8px;padding:12px;margin-bottom:12px;font-size:13px;text-align:left">
+      <div style="font-weight:700;color:var(--finggu-orange);margin-bottom:4px">⚙️ Supabase not set up yet</div>
+      <div style="color:var(--finggu-muted);font-size:12px;line-height:1.6">
+        You need to add your Supabase URL and Key first.<br>
+        Go to <strong>Settings → ☁️ Cloud Sync</strong> to set it up.
+      </div>
+      <button onclick="fingguFn_hideAuthScreen();fingguFn_switchTab('settings');" 
+        class="finggu-btn finggu-btn-primary" 
+        style="width:100%;justify-content:center;margin-top:10px;padding:10px">
+        Go to Settings → Set up Cloud Sync
+      </button>
+    </div>
     <div class="finggu-auth-or">or</div>
     <div class="finggu-auth-skip" onclick="fingguFn_skipAuth()">
       Continue without account (data stays on this device only)
@@ -2454,6 +2466,17 @@ const fingguFn_initSupabase = async () => {
 
 // ── Auth UI ───────────────────────────────────────────────────────────────────
 const fingguFn_showAuthScreen = () => {
+  // Only show auth screen if Supabase is actually configured
+  const FINGGU_savedUrl = localStorage.getItem('finggu_supa_url');
+  const FINGGU_savedKey = localStorage.getItem('finggu_supa_key');
+  const FINGGU_isConfigured = FINGGU_savedUrl && FINGGU_savedKey &&
+    FINGGU_savedUrl !== 'YOUR_SUPABASE_URL';
+
+  if (!FINGGU_isConfigured) {
+    // Not configured — stay on app in local mode, show sync bar hint
+    fingguFn_setSyncStatus('offline', 'Local mode — go to Settings → ☁️ to enable sync');
+    return;
+  }
   document.getElementById('finggu-auth-screen').style.display = 'flex';
 };
 
@@ -2463,6 +2486,24 @@ const fingguFn_hideAuthScreen = () => {
 };
 
 const fingguFn_sendMagicLink = async () => {
+  // Guard: Supabase not configured yet
+  if (!FINGGU_supabase) {
+    // Hide auth screen, go to Settings → Cloud Sync
+    fingguFn_hideAuthScreen();
+    fingguFn_switchTab('settings');
+    setTimeout(() => {
+      fingguFn_renderSupabaseCard();
+      // Open the guide automatically
+      const FINGGU_guide = document.getElementById('finggu-supa-guide');
+      if (FINGGU_guide) FINGGU_guide.style.display = 'block';
+      const FINGGU_guideBtn = FINGGU_guide?.previousElementSibling;
+      if (FINGGU_guideBtn) FINGGU_guideBtn.textContent = '📖 Hide instructions';
+      document.getElementById('finggu-supabase-card')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+    fingguFn_toast('⚙️ Set up Supabase in Settings first', 'error');
+    return;
+  }
+
   const FINGGU_email = document.getElementById('finggu-auth-email').value.trim();
   if (!FINGGU_email || !FINGGU_email.includes('@')) {
     fingguFn_toast('Enter a valid email address', 'error'); return;
@@ -2508,6 +2549,7 @@ const fingguFn_skipAuth = () => {
 };
 
 const fingguFn_signOut = async () => {
+  if (!FINGGU_supabase) { fingguFn_toast('Not signed in', 'error'); return; }
   if (!confirm('Sign out? Your data will stay on this device.')) return;
   if (FINGGU_supabase) await FINGGU_supabase.auth.signOut();
   FINGGU_currentUser = null;
@@ -2748,6 +2790,11 @@ const fingguFn_pushToCloud = async () => {
 
 // ── Manual sync button ────────────────────────────────────────────────────────
 const fingguFn_manualSync = async () => {
+  if (!FINGGU_supabase) {
+    fingguFn_switchTab('settings');
+    fingguFn_toast('⚙️ Set up Supabase in Settings first', 'error');
+    return;
+  }
   if (!FINGGU_currentUser) {
     fingguFn_showAuthScreen(); return;
   }
@@ -2760,7 +2807,7 @@ const fingguFn_manualSync = async () => {
 
 // ── Auto-sync: debounced after every save ─────────────────────────────────────
 const fingguFn_scheduleSyncToCloud = () => {
-  if (!FINGGU_currentUser) return;
+  if (!FINGGU_supabase || !FINGGU_currentUser) return;
   FINGGU_syncPending = true;
   clearTimeout(FINGGU_SYNC_TIMER);
   FINGGU_SYNC_TIMER = setTimeout(() => {
